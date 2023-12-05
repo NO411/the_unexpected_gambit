@@ -3,6 +3,9 @@ local modname = minetest.get_current_modname()
 local prefix = modname .. ":"
 
 minetest.settings:set("time_speed", 0)
+minetest.settings:set("viewing_range", 50)
+
+ground_level = 8
 
 minetest.register_alias("mapgen_stone", prefix .. "ground")
 minetest.register_alias("mapgen_grass", prefix .. "ground")
@@ -18,26 +21,48 @@ local colors = {
 
 minetest.register_node(prefix .. "ground", {
 	tiles = {"tug_blank.png^[colorize:" .. colors[3]},
-	pointable = false,
+	--pointable = false,
     is_ground_content = false,
 })
 
-minetest.register_entity(prefix .. "rook", {
-    initial_properties = {
-        visual = "mesh",
-        mesh = "tug_core_" .. "knight" .. ".obj",
-        physical = true,
-        pointable = true,
-        collide_with_objects = false,
-        textures = {"tug_blank.png^[colorize:" .. colors[2]},
-        visual_size = vector.new(1, 1, 1),
-    },
-    on_step = function(self, dtime, moveresult)
-    end,
+minetest.register_node(prefix .. "dark", {
+	tiles = {"tug_blank.png^[colorize:" .. colors[1]},
+	--pointable = false,
+    is_ground_content = false,
 })
 
+minetest.register_node(prefix .. "light", {
+	tiles = {"tug_blank.png^[colorize:" .. colors[2]},
+	--pointable = false,
+    is_ground_content = false,
+})
+
+minetest.register_on_generated(function(minp, maxp, blockseed)
+    minetest.set_node({x = 0, y = ground_level, z = 0}, {name = prefix .. "light"})
+
+end)
+
+for _, piece in pairs(tug_chess_logic.pieces) do
+    minetest.chat_send_all(piece)
+    minetest.register_entity(prefix .. piece, {
+        initial_properties = {
+            visual = "mesh",
+            mesh = "tug_core_" .. piece .. ".obj",
+            physical = true,
+            pointable = true,
+            collide_with_objects = false,
+            textures = {"tug_blank.png^[colorize:" .. colors[2]},
+            visual_size = vector.new(2, 2, 2),
+        },
+        on_step = function(self, dtime, moveresult)
+        end,
+    })
+end
+
 minetest.register_on_joinplayer(function(player)
-    minetest.add_entity(player:get_pos(), prefix .. "rook")
+    minetest.add_entity(vector.new(0, ground_level + 0.5, 0), prefix .. "pawn")
+    player:set_pos(vector.new(0, ground_level, 0))
+
     clr1 = colors[2]
 	player:set_sky({
         clouds = false,
@@ -56,7 +81,7 @@ minetest.register_on_joinplayer(function(player)
         sunrise_visible = false,
     })
     player:hud_set_flags({
-        hotbar = false,
+        hotbar = true,
 		healthbar = false,
 		crosshair = true,
 		wielditem = false,
