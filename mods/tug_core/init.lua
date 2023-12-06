@@ -12,34 +12,56 @@ minetest.register_alias("mapgen_grass", prefix .. "ground")
 minetest.register_alias("mapgen_water_source", prefix .. "ground")
 minetest.register_alias("mapgen_river_water_source", prefix .. "ground")
 
+-- https://www.deviantart.com/itztheprius/art/Tower-of-Champion-s-Road-Color-Palette-909204377
 local colors = {
-    "#040D12",
-    "#183D3D",
-    "#5C8374",
-    "#93B1A6",
+    sky = "#ffffff", -- sky
+    ground = "#ffffff", -- ground
+    frame = "#baca44", -- frame
+    light_square = "#EEEED2", -- light square
+    dark_square = "#769656",  -- dark square
+    light_pieces = "#ffffff", -- light pieces
+    dark_pieces = "#000000", -- dark pieces
 }
 
 minetest.register_node(prefix .. "ground", {
-	tiles = {"tug_blank.png^[colorize:" .. colors[3]},
+	tiles = {"tug_blank.png^[colorize:" .. colors.ground},
+	--pointable = false,
+    is_ground_content = false,
+})
+
+minetest.register_node(prefix .. "frame", {
+	tiles = {"tug_blank.png^[colorize:" .. colors.frame},
 	--pointable = false,
     is_ground_content = false,
 })
 
 minetest.register_node(prefix .. "dark", {
-	tiles = {"tug_blank.png^[colorize:" .. colors[1]},
+	tiles = {"tug_blank.png^[colorize:" .. colors.dark_square},
 	--pointable = false,
     is_ground_content = false,
 })
 
 minetest.register_node(prefix .. "light", {
-	tiles = {"tug_blank.png^[colorize:" .. colors[2]},
+	tiles = {"tug_blank.png^[colorize:" .. colors.light_square},
 	--pointable = false,
     is_ground_content = false,
 })
 
 minetest.register_on_generated(function(minp, maxp, blockseed)
-    minetest.set_node({x = 0, y = ground_level, z = 0}, {name = prefix .. "light"})
+    for x = -1, 8 do
+        for y = -1, 8 do
+            node = "dark"
+            if (x + y) % 2 == 0 then
+                node = "light"
+            end
 
+            if x == -1 or x == 8 or y == -1 or y == 8 then
+                node = "frame"
+            end
+
+            minetest.set_node({x = x, y = ground_level, z = y}, {name = prefix .. node})
+        end
+    end
 end)
 
 for _, piece in pairs(tug_chess_logic.pieces) do
@@ -51,7 +73,7 @@ for _, piece in pairs(tug_chess_logic.pieces) do
             physical = true,
             pointable = true,
             collide_with_objects = false,
-            textures = {"tug_blank.png^[colorize:" .. colors[2]},
+            textures = {"tug_blank.png^[colorize:" .. colors.light_pieces},
             visual_size = vector.new(2, 2, 2),
         },
         on_step = function(self, dtime, moveresult)
@@ -63,7 +85,7 @@ minetest.register_on_joinplayer(function(player)
     minetest.add_entity(vector.new(0, ground_level + 0.5, 0), prefix .. "knight")
     player:set_pos(vector.new(0, ground_level, 0))
 
-    clr1 = colors[2]
+    clr1 = colors.sky
 	player:set_sky({
         clouds = false,
         type = "regular",
@@ -81,7 +103,7 @@ minetest.register_on_joinplayer(function(player)
         sunrise_visible = false,
     })
     player:hud_set_flags({
-        hotbar = true,
+        hotbar = false,
 		healthbar = false,
 		crosshair = true,
 		wielditem = false,
