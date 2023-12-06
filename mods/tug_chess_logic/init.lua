@@ -41,6 +41,7 @@ function tug_chess_logic.get_default_board()
             end
         end
     end
+    board.player = 1
     return board
 end
 

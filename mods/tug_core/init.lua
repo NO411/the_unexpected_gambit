@@ -3,6 +3,12 @@ local modname = minetest.get_current_modname()
 local prefix = modname .. ":"
 local storage = minetest.get_mod_storage()
 
+tug_core = {
+    player1 = "",
+    player2 = "",
+    white = nil,
+}
+
 -- metadata
 function save_metadata()
     storage:set_string("board", minetest.serialize(tug_chess_logic.current_board))
@@ -62,6 +68,12 @@ minetest.register_node(prefix .. "light", {
     is_ground_content = false,
 })
 
+minetest.register_node(prefix .. "barrier", {
+    drawtype = "airlike",
+    paramtype = "light",
+    sunlight_propagates = true,
+})
+
 minetest.register_on_generated(function(minp, maxp, blockseed)
     for x = -1, 8 do
         for y = -1, 8 do
@@ -104,7 +116,7 @@ minetest.register_on_joinplayer(function(player)
         if board ~= nil then
             tug_chess_logic.restart(board)
         end
-        
+
         update_game_board()
     end
 
@@ -136,11 +148,39 @@ minetest.register_on_joinplayer(function(player)
 	})
 end)
 
+function split(s, delimiter)
+    local result = {}
+    for match in (s .. delimiter):gmatch("(.-)" .. delimiter) do
+        table.insert(result, match)
+    end
+    return result
+end
+
 minetest.register_chatcommand("start", {
     params = "[player2]",
     description = "default is singleplayer against engine, use player2 to play against an other player",
     privs = {},
     func = function(name, param)
+        tug_core.player1 = name
+        local t = split(param, " ")
+        local player2 = t[#t]
+
+        if player2 ~= "" then
+            tug_core.player2 = player2
+        else
+            tug_core.player2 = ""
+        end
+        
+        local white = 1
+        if math.random(0, 1) == 1 then
+            white = 2
+            minetest.chat_send_player(name, "You play with the black pieces.")
+            minetest.chat_send_player(player2, "You play with the white pieces.")
+        else
+            minetest.chat_send_player(name, "You play with the white pieces.")
+            minetest.chat_send_player(player2, "You play with the black pieces.")
+        end
+
         tug_chess_logic.start()
         update_game_board()
         save_metadata()
