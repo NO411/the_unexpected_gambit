@@ -24,7 +24,7 @@ function heuristic(board, id)
 
     for _, line in ipairs(board) do
         for _, row in ipairs(board) do
-            if row != nil then
+            if row ~= nil then
                 if row.name == row.name.upper() then
                     if id == 1 then figure_count_self = figure_count_self + piece_values[row.name.lower()]
                     else figure_count_enemy = figure_count_enemy + piece_values[row.name.lower()] end

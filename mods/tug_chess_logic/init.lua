@@ -22,7 +22,7 @@ function get_next_boards(board, id)
 end
 
 -- board = {
---  {nil, {""}}
+--  {nil, {name = ""}}
 --  ...
 -- }
 

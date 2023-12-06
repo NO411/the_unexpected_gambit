@@ -82,7 +82,7 @@ for _, piece in pairs(tug_chess_logic.pieces) do
 end
 
 minetest.register_on_joinplayer(function(player)
-    minetest.add_entity(vector.new(0, ground_level + 0.5, 0), prefix .. "knight")
+    minetest.add_entity(vector.new(0, ground_level + 0.5, 0), prefix .. "rook")
     player:set_pos(vector.new(0, ground_level, 0))
 
     clr1 = colors.sky
@@ -112,3 +112,6 @@ minetest.register_on_joinplayer(function(player)
 		minimap_radar = false,
 	})
 end)
+
+function update_game_board(board)
+end
