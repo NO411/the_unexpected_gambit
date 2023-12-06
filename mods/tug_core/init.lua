@@ -82,10 +82,11 @@ for _, piece in pairs(tug_chess_logic.pieces) do
 end
 
 minetest.register_on_joinplayer(function(player)
+    minetest.chat_send_player(player:get_player_name(), tug_chess_logic.get_default_board())
     minetest.add_entity(vector.new(0, ground_level + 0.5, 0), prefix .. "rook")
     player:set_pos(vector.new(0, ground_level, 0))
 
-    clr1 = colors.sky
+    local clr1 = colors.sky
 	player:set_sky({
         clouds = false,
         type = "regular",

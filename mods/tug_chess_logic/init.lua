@@ -11,13 +11,48 @@ tug_chess_logic.pieces = {
     "pawn",
 }
 
+function tug_chess_logic.get_default_board()
+    local board = {}
+    for r = 1, 8 do
+        board[r] = {}
+        if r == 2 or r == 7 then
+            for c = 1, 8 do
+                board[r][c] = {name = r == 2 and "P" or "p"}
+            end
+        elseif r == 1 then
+            board[1] = {
+                {name = "R"},
+                {name = "N"},
+                {name = "B"},
+                {name = "Q"},
+                {name = "K"},
+                {name = "B"},
+                {name = "N"},
+                {name = "R"},
+            }
+        elseif r == 8 then
+            board[8] = {
+                {name = "r"},
+                {name = "n"},
+                {name = "b"},
+                {name = "q"},
+                {name = "k"},
+                {name = "b"},
+                {name = "n"},
+                {name = "r"},
+            }
+        end
+    end
+    return board
+end
+
 -- TODOS
 
-function has_won(board)
+function tug_chess_logic.has_won(board)
     -- RETURNS 0 - No winner, 1 - White won, 2 - Black won
 end
 
-function get_next_boards(board, id)
+function tug_chess_logic.get_next_boards(board, id)
     -- RETURNS All next boards for a current player
 end
 
