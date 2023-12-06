@@ -137,10 +137,8 @@ function update_game_board(board)
             local piece = board[x + 1][y + 1]
             if piece ~= nil then
                 local objs = minetest.get_objects_in_area(vector.new(x - 0.5, ground_level - 0.5, y - 0.5), vector.new(x + 0.5, ground_level + 0.5, y + 0.5))
-                if #objs > 0 then
-                    for _, obj in pairs(objs) do
-                        obj:remove()
-                    end
+                for _, obj in pairs(objs) do
+                    obj:remove()
                 end
                 local ent = minetest.add_entity(vector.new(x, ground_level + 0.5, y), prefix .. entity_lookup[string.upper(piece.name)])
 				if piece.name == string.upper(piece.name) then
