@@ -41,6 +41,10 @@ function tug_chess_logic.get_default_board()
                 {name = "n"},
                 {name = "r"},
             }
+        else
+            for c = 1, 8 do
+                board[r][c] = nil
+            end
         end
     end
     return board
