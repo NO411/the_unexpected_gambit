@@ -82,7 +82,6 @@ for _, piece in pairs(tug_chess_logic.pieces) do
 end
 
 minetest.register_on_joinplayer(function(player)
-    minetest.add_entity(vector.new(0, ground_level + 0.5, 0), prefix .. "rook")
     player:set_pos(vector.new(0, ground_level + 1, 0))
 
     local clr1 = colors.sky
@@ -113,5 +112,38 @@ minetest.register_on_joinplayer(function(player)
 	})
 end)
 
+minetest.register_chatcommand("start", {
+    params = "[player2]",
+    description = "default is singleplayer against engine, use player2 to play against an other player",
+    privs = {},
+    func = function(name, param)
+        minetest.chat_send_all(name)
+        update_game_board(tug_chess_logic.get_default_board())
+    end,
+})
+
+local entity_lookup = {
+    ["R"] = "rook",
+    ["N"] = "knight",
+    ["B"] = "bishop",
+    ["Q"] = "queen",
+    ["K"] = "king",
+    ["P"] = "pawn",
+}
+
 function update_game_board(board)
+    for x = 0, 7 do
+        for y = 0, 7 do
+            local piece = board[x + 1][y + 1]
+            if piece ~= nil then
+                local objs = minetest.get_objects_in_area(vector.new(x - 0.5, ground_level - 0.5, y - 0.5), vector.new(x + 0.5, ground_level + 0.5, y + 0.5))
+                if #objs > 0 then
+                    for _, obj in pairs(objs) do
+                        obj:remove()
+                    end
+                end
+                minetest.add_entity(vector.new(x, ground_level + 0.5, y), prefix .. entity_lookup[string.upper(piece.name)])
+            end
+        end
+    end
 end

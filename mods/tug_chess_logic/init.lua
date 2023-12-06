@@ -16,8 +16,8 @@ function tug_chess_logic.get_default_board()
     for r = 1, 8 do
         board[r] = {}
         if r == 2 or r == 7 then
-            for c = 1, 8 do
-                board[r][c] = {name = r == 2 and "P" or "p"}
+            for _ = 1, 8 do
+                table.insert(board[r], {name = r == 2 and "P" or "p"})
             end
         elseif r == 1 then
             board[1] = {
@@ -42,8 +42,8 @@ function tug_chess_logic.get_default_board()
                 {name = "r"},
             }
         else
-            for c = 1, 8 do
-                board[r][c] = nil
+            for _ = 1, 8 do
+                table.insert(board[r], nil)
             end
         end
     end
