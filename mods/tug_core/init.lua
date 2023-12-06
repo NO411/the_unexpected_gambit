@@ -20,7 +20,7 @@ local colors = {
     light_square = "#EEEED2", -- light square
     dark_square = "#769656",  -- dark square
     light_pieces = "#ffffff", -- light pieces
-    dark_pieces = "#000000", -- dark pieces
+    dark_pieces = "#2E2E2E", -- dark pieces
 }
 
 minetest.register_node(prefix .. "ground", {
@@ -142,7 +142,13 @@ function update_game_board(board)
                         obj:remove()
                     end
                 end
-                minetest.add_entity(vector.new(x, ground_level + 0.5, y), prefix .. entity_lookup[string.upper(piece.name)])
+                local ent = minetest.add_entity(vector.new(x, ground_level + 0.5, y), prefix .. entity_lookup[string.upper(piece.name)])
+				if piece.name == string.upper(piece.name) then
+                    ent:set_properties({ textures = {"tug_blank.png^[colorize:" .. colors.light_pieces} })
+                else
+                    ent:set_properties({ textures = {"tug_blank.png^[colorize:" .. colors.dark_pieces} })
+					ent:set_yaw(math.pi)
+                end
             end
         end
     end
