@@ -13,6 +13,31 @@ function heuristic(board, id)
 
     -- TODO: Implement https://en.wikipedia.org/wiki/Chess_piece_relative_value
 
+    piece_values = {
+        ["p"] = 1,
+        ["r"] = 4,
+        ["b"] = 3,
+        ["n"] = 3,
+        ["k"] = 0,
+        ["q"] = 9,
+    }
+
+    for _, line in ipairs(board) do
+        for _, row in ipairs(board) do
+            if row != nil then
+                if row.name == row.name.upper() then
+                    if id == 1 then figure_count_self = figure_count_self + piece_values[row.name.lower()]
+                    else figure_count_enemy = figure_count_enemy + piece_values[row.name.lower()] end
+                else
+                    if id == 2 then figure_count_self = figure_count_self + piece_values[row.name.lower()]
+                    else figure_count_enemy = figure_count_enemy + piece_values[row.name.lower()] end
+                end
+            end
+        end
+    end
+
+    score = score + figure_count_self - figure_count_enemy
+
     -- TODO: Implement best positions for pieces
 
     return score
