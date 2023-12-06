@@ -1,6 +1,12 @@
 local minetest, math, vector = minetest, math, vector
 local modname = minetest.get_current_modname()
 local prefix = modname .. ":"
+local storage = minetest.get_mod_storage()
+
+-- metadata
+function save_metadata()
+    storage:set_string("board", minetest.serialize(tug_chess_logic.current_board))
+end
 
 minetest.settings:set("time_speed", 0)
 minetest.settings:set("viewing_range", 50)
@@ -59,7 +65,7 @@ minetest.register_node(prefix .. "light", {
 minetest.register_on_generated(function(minp, maxp, blockseed)
     for x = -1, 8 do
         for y = -1, 8 do
-            node = "dark"
+            local node = "dark"
             if (x + y) % 2 == 0 then
                 node = "light"
             end
@@ -92,6 +98,15 @@ end
 
 minetest.register_on_joinplayer(function(player)
     player:set_pos(vector.new(0, ground_level + 1, 0))
+
+    if #minetest.get_connected_players() == 1 then
+        local board = minetest.deserialize(storage:get_string("board"))
+        if board ~= nil then
+            tug_chess_logic.restart(board)
+        end
+        
+        update_game_board()
+    end
 
     local clr1 = colors.sky
 	player:set_sky({
@@ -126,22 +141,29 @@ minetest.register_chatcommand("start", {
     description = "default is singleplayer against engine, use player2 to play against an other player",
     privs = {},
     func = function(name, param)
-        minetest.chat_send_all(name)
-        update_game_board(tug_chess_logic.get_default_board())
+        tug_chess_logic.start()
+        update_game_board()
+        save_metadata()
     end,
 })
 
-function update_game_board(board)
+function update_game_board()
+    if tug_chess_logic.current_board == nil then
+        return
+    end
+
     for x = 0, 7 do
         for y = 0, 7 do
-            local piece = board[x + 1][y + 1]
-            if piece ~= nil then
+            local piece = tug_chess_logic.current_board[x + 1][y + 1]
+            if piece.name ~= "" then
                 local objs = minetest.get_objects_in_area(vector.new(x - 0.5, ground_level - 0.5, y - 0.5), vector.new(x + 0.5, ground_level + 0.5, y + 0.5))
-                for _, obj in pairs(objs) do
-                    obj:remove()
+                if #objs > 0 then
+                    for _, obj in pairs(objs) do
+                        obj:remove()
+                    end
                 end
                 local ent = minetest.add_entity(vector.new(x, ground_level + 0.5, y), prefix .. entity_lookup[string.upper(piece.name)])
-				if piece.name == string.upper(piece.name) then
+                if piece.name == string.upper(piece.name) then
                     ent:set_properties({ textures = {"tug_blank.png^[colorize:" .. colors.light_pieces} })
                 else
                     ent:set_properties({ textures = {"tug_blank.png^[colorize:" .. colors.dark_pieces} })

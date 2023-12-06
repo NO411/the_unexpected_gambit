@@ -3,44 +3,105 @@ local modname = minetest.get_current_modname()
 
 tug_chess_engine = {}
 
+local win_score = 10000
+
 local piece_values_lookup = {
-    ["p"] = 1,
-    ["r"] = 4,
-    ["b"] = 3,
-    ["n"] = 3,
+    ["p"] = 100,
+    ["n"] = 320,
+    ["b"] = 330,
+    ["r"] = 500,
+    ["q"] = 900,
     ["k"] = 0,
-    ["q"] = 9,
+}
+
+local piece_square_tables = {
+    ["p"] = {
+        {  0,  0,  0,  0,  0,  0,  0,  0},
+        { 50, 50, 50, 50, 50, 50, 50, 50},
+        { 10, 10, 20, 30, 30, 20, 10, 10},
+        {  5,  5, 10, 25, 25, 10,  5,  5},
+        {  0,  0,  0, 20, 20,  0,  0,  0},
+        {  5, -5,-10,  0,  0,-10, -5,  5},
+        {  5, 10, 10,-20,-20, 10, 10,  5},
+        {  0,  0,  0,  0,  0,  0,  0,  0},
+    },
+    ["n"] = {
+        {-50,-40,-30,-30,-30,-30,-40,-50},
+        {-40,-20,  0,  0,  0,  0,-20,-40},
+        {-30,  0, 10, 15, 15, 10,  0,-30},
+        {-30,  5, 15, 20, 20, 15,  5,-30},
+        {-30,  0, 15, 20, 20, 15,  0,-30},
+        {-30,  5, 10, 15, 15, 10,  5,-30},
+        {-40,-20,  0,  5,  5,  0,-20,-40},
+        {-50,-40,-30,-30,-30,-30,-40,-50},
+    },
+    ["b"] = {
+        {-20,-10,-10,-10,-10,-10,-10,-20},
+        {-10,  0,  0,  0,  0,  0,  0,-10},
+        {-10,  0,  5, 10, 10,  5,  0,-10},
+        {-10,  5,  5, 10, 10,  5,  5,-10},
+        {-10,  0, 10, 10, 10, 10,  0,-10},
+        {-10, 10, 10, 10, 10, 10, 10,-10},
+        {-10,  5,  0,  0,  0,  0,  5,-10},
+        {-20,-10,-10,-10,-10,-10,-10,-20},
+    },
+    ["r"] = {
+        {  0,  0,  0,  0,  0,  0,  0,  0},
+        {  5, 10, 10, 10, 10, 10, 10,  5},
+        { -5,  0,  0,  0,  0,  0,  0, -5},
+        { -5,  0,  0,  0,  0,  0,  0, -5},
+        { -5,  0,  0,  0,  0,  0,  0, -5},
+        { -5,  0,  0,  0,  0,  0,  0, -5},
+        { -5,  0,  0,  0,  0,  0,  0, -5},
+        {  0,  0,  0,  5,  5,  0,  0,  0},
+    },
+    ["q"] = {
+        {-20,-10,-10, -5, -5,-10,-10,-20},
+        {-10,  0,  0,  0,  0,  0,  0,-10},
+        {-10,  0,  5,  5,  5,  5,  0,-10},
+        { -5,  0,  5,  5,  5,  5,  0, -5},
+        {  0,  0,  5,  5,  5,  5,  0, -5},
+        {-10,  5,  5,  5,  5,  5,  0,-10},
+        {-10,  0,  5,  0,  0,  0,  0,-10},
+        {-20,-10,-10, -5, -5,-10,-10,-20},
+    },
+    ["k"] = {
+        {-30,-40,-40,-50,-50,-40,-40,-30},
+        {-30,-40,-40,-50,-50,-40,-40,-30},
+        {-30,-40,-40,-50,-50,-40,-40,-30},
+        {-30,-40,-40,-50,-50,-40,-40,-30},
+        {-20,-30,-30,-40,-40,-30,-30,-20},
+        {-10,-20,-20,-20,-20,-20,-20,-10},
+        { 20, 20,  0,  0,  0,  0, 20, 20},
+        { 20, 30, 10,  0,  0, 10, 30, 20},
+    }
 }
 
 function tug_chess_engine.heuristic(board, id)
     local score = 0
     
+    -- WIN
     local winning_player = has_won(board)
-    if winning_player == id then score = score + 100
-    elseif winning_player == -id + 3 then score = score - 100 end
+    if winning_player == id then score = score + win_score
+    elseif winning_player == -id + 3 then score = score - win_score end
 
-    local figure_count_enemy = 0
-    local figure_count_self = 0
-
-	-- TODO: Implement https://en.wikipedia.org/wiki/Chess_piece_relative_value
-
-    for _, line in ipairs(board) do
-        for _, row in ipairs(board) do
-            if row ~= nil then
+    -- MATERIAL AND POSITION
+    for l, line in ipairs(board) do
+        for r, row in ipairs(board) do
+            if row.name ~= "" then
                 if row.name == string.upper(row.name) then
-                    if id == 1 then figure_count_self = figure_count_self + piece_values[string.lower(row.name)]
-                    else figure_count_enemy = figure_count_enemy + piece_values[string.lower(row.name)] end
+                    if id == 1 then score = score + piece_values[string.lower(row.name)] + piece_square_tables[string.lower(row.name)][l][r]
+                    else score = score - piece_values[string.lower(row.name)] - piece_square_tables[string.lower(row.name)][l][r] end
                 else
-                    if id == 2 then figure_count_self = figure_count_self + piece_values[string.lower(row.name)]
-                    else figure_count_enemy = figure_count_enemy + piece_values[string.lower(row.name)] end
+                    if id == 2 then score = score + piece_values[string.lower(row.name)] + piece_square_tables[string.lower(row.name)][9 - l][9 - r]
+                    else score = score - piece_values[string.lower(row.name)] - piece_square_tables[string.lower(row.name)][9 - l][9 - r] end
                 end
             end
         end
     end
 
-    score = score + figure_count_self - figure_count_enemy
-
-    -- TODO: Implement best positions for pieces
+    -- TODO: Implement https://en.wikipedia.org/wiki/Chess_piece_relative_value
+    -- TODO: Implement https://www.chessprogramming.org/Simplified_Evaluation_Function
 
     return score
 end

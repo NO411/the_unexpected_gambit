@@ -1,7 +1,9 @@
 local minetest, math, vector = minetest, math, vector
 local modname = minetest.get_current_modname()
 
-tug_chess_logic = {}
+tug_chess_logic = {
+    current_board = nil,
+}
 
 function tug_chess_logic.get_default_board()
     local board = {}
@@ -35,11 +37,19 @@ function tug_chess_logic.get_default_board()
             }
         else
             for _ = 1, 8 do
-                table.insert(board[r], nil)
+                table.insert(board[r], {name = ""})
             end
         end
     end
     return board
+end
+
+function tug_chess_logic.start()
+    tug_chess_logic.current_board = tug_chess_logic.get_default_board()
+end
+
+function tug_chess_logic.restart(board)
+    tug_chess_logic.current_board = board
 end
 
 -- TODOS
@@ -51,11 +61,6 @@ end
 function tug_chess_logic.get_next_boards(board, id)
     -- RETURNS All next boards for a current player
 end
-
--- board = {
---  {nil, {name = ""}}
---  ...
--- }
 
 -- UTILS
 
