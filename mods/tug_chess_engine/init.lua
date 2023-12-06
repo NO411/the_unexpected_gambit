@@ -13,7 +13,7 @@ function tug_chess_engine.heuristic(board, id)
     local figure_count_enemy = 0
     local figure_count_self = 0
 
-    -- TODO: Implement https://en.wikipedia.org/wiki/Chess_piece_relative_value
+	-- TODO: Implement https://en.wikipedia.org/wiki/Chess_piece_relative_value
 
     piece_values = {
         ["p"] = 1,
