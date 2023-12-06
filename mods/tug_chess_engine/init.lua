@@ -8,6 +8,9 @@ function heuristic(board, id)
     if winning_player == id then score = score + 100
     elseif winning_player == -id + 3 then score = score - 100 end
 
+    figure_count_enemy = 0
+    figure_count_self = 0
+
     return score
 end
 
