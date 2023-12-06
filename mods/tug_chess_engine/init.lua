@@ -27,12 +27,12 @@ function tug_chess_engine.heuristic(board, id)
     for _, line in ipairs(board) do
         for _, row in ipairs(board) do
             if row ~= nil then
-                if row.name == row.name.upper() then
-                    if id == 1 then figure_count_self = figure_count_self + piece_values[row.name.lower()]
-                    else figure_count_enemy = figure_count_enemy + piece_values[row.name.lower()] end
+                if row.name == string.upper(row.name) then
+                    if id == 1 then figure_count_self = figure_count_self + piece_values[string.lower(row.name)]
+                    else figure_count_enemy = figure_count_enemy + piece_values[string.lower(row.name)] end
                 else
-                    if id == 2 then figure_count_self = figure_count_self + piece_values[row.name.lower()]
-                    else figure_count_enemy = figure_count_enemy + piece_values[row.name.lower()] end
+                    if id == 2 then figure_count_self = figure_count_self + piece_values[string.lower(row.name)]
+                    else figure_count_enemy = figure_count_enemy + piece_values[string.lower(row.name)] end
                 end
             end
         end
