@@ -3,6 +3,15 @@ local modname = minetest.get_current_modname()
 
 tug_chess_engine = {}
 
+local piece_values_lookup = {
+    ["p"] = 1,
+    ["r"] = 4,
+    ["b"] = 3,
+    ["n"] = 3,
+    ["k"] = 0,
+    ["q"] = 9,
+}
+
 function tug_chess_engine.heuristic(board, id)
     local score = 0
     
@@ -14,15 +23,6 @@ function tug_chess_engine.heuristic(board, id)
     local figure_count_self = 0
 
 	-- TODO: Implement https://en.wikipedia.org/wiki/Chess_piece_relative_value
-
-    piece_values = {
-        ["p"] = 1,
-        ["r"] = 4,
-        ["b"] = 3,
-        ["n"] = 3,
-        ["k"] = 0,
-        ["q"] = 9,
-    }
 
     for _, line in ipairs(board) do
         for _, row in ipairs(board) do

@@ -23,6 +23,15 @@ local colors = {
     dark_pieces = "#2E2E2E", -- dark pieces
 }
 
+local entity_lookup = {
+    ["R"] = "rook",
+    ["N"] = "knight",
+    ["B"] = "bishop",
+    ["Q"] = "queen",
+    ["K"] = "king",
+    ["P"] = "pawn",
+}
+
 minetest.register_node(prefix .. "ground", {
 	tiles = {"tug_blank.png^[colorize:" .. colors.ground},
 	--pointable = false,
@@ -64,7 +73,7 @@ minetest.register_on_generated(function(minp, maxp, blockseed)
     end
 end)
 
-for _, piece in pairs(tug_chess_logic.pieces) do
+for _, piece in pairs(entity_lookup) do
     minetest.chat_send_all(piece)
     minetest.register_entity(prefix .. piece, {
         initial_properties = {
@@ -121,15 +130,6 @@ minetest.register_chatcommand("start", {
         update_game_board(tug_chess_logic.get_default_board())
     end,
 })
-
-local entity_lookup = {
-    ["R"] = "rook",
-    ["N"] = "knight",
-    ["B"] = "bishop",
-    ["Q"] = "queen",
-    ["K"] = "king",
-    ["P"] = "pawn",
-}
 
 function update_game_board(board)
     for x = 0, 7 do
