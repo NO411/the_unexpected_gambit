@@ -5,6 +5,7 @@ local prefix = modname .. ":"
 minetest.settings:set("time_speed", 0)
 minetest.settings:set("viewing_range", 50)
 
+-- fix
 ground_level = 8
 
 minetest.register_alias("mapgen_stone", prefix .. "ground")
@@ -12,7 +13,6 @@ minetest.register_alias("mapgen_grass", prefix .. "ground")
 minetest.register_alias("mapgen_water_source", prefix .. "ground")
 minetest.register_alias("mapgen_river_water_source", prefix .. "ground")
 
--- https://www.deviantart.com/itztheprius/art/Tower-of-Champion-s-Road-Color-Palette-909204377
 local colors = {
     sky = "#ffffff", -- sky
     ground = "#ffffff", -- ground
