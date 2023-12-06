@@ -11,6 +11,10 @@ function heuristic(board, id)
     figure_count_enemy = 0
     figure_count_self = 0
 
+    -- TODO: Implement https://en.wikipedia.org/wiki/Chess_piece_relative_value
+
+    -- TODO: Implement best positions for pieces
+
     return score
 end
 
