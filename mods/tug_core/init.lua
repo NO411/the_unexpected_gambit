@@ -3,6 +3,9 @@ local modname = minetest.get_current_modname()
 local prefix = modname .. ":"
 local storage = minetest.get_mod_storage()
 
+local loaded_board = minetest.deserialize(storage:get_string("board"))
+tug_chess_logic.current_board = loaded_board
+
 tug_core = {
     player1 = "",
     player2 = "",
@@ -112,15 +115,6 @@ end
 minetest.register_on_joinplayer(function(player)
     player:set_pos(vector.new(0, ground_level + 1, 0))
 
-    if #minetest.get_connected_players() == 1 then
-        local board = minetest.deserialize(storage:get_string("board"))
-        if board ~= nil then
-            tug_chess_logic.restart(board)
-        end
-
-        update_game_board()
-    end
-
     local clr1 = colors.sky
 	player:set_sky({
         clouds = false,
@@ -147,6 +141,10 @@ minetest.register_on_joinplayer(function(player)
 		minimap = false,
 		minimap_radar = false,
 	})
+
+    minetest.after(0, function()
+        update_game_board()
+    end)
 end)
 
 function split(s, delimiter)
