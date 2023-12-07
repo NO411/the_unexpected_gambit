@@ -102,6 +102,7 @@ for _, piece in pairs(entity_lookup) do
             collide_with_objects = false,
             textures = {"tug_blank.png^[colorize:" .. colors.light_pieces},
             visual_size = vector.new(2, 2, 2),
+            static_save = false,
         },
         on_step = function(self, dtime, moveresult)
         end,
