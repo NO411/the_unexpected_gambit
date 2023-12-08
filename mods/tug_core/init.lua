@@ -3,21 +3,25 @@ local modname = minetest.get_current_modname()
 local prefix = modname .. ":"
 local storage = minetest.get_mod_storage()
 
+local loaded_gamestate = minetest.deserialize(storage:get_string("gamestate"))
+tug_gamestate.g = loaded_gamestate
+
+if loaded_gamestate == nil then
+    tug_gamestate.g = {
+        players = {"", ""},
+        white = nil,
+        current_player = nil,
+        current_selected = nil,
+        current_board = nil,
+    }
+end
 
 tug_core = {
-    player1 = "",
-    player2 = "",
-    white = nil,
-    current_selected = nil,
-    current_board = nil,
 }
-
-local loaded_board = minetest.deserialize(storage:get_string("board"))
-tug_core.current_board = loaded_board
 
 -- metadata
 function save_metadata()
-    storage:set_string("board", minetest.serialize(tug_core.current_board))
+    storage:set_string("gamestate", minetest.serialize(tug_gamestate.g))
 end
 
 minetest.settings:set("time_speed", 0)
@@ -172,6 +176,23 @@ minetest.register_on_joinplayer(function(player)
 		minimap_radar = false,
 	})
 
+    local found = false
+    for i, p in ipairs(tug_gamestate.g.players) do
+        if p == player:get_player_name() then
+            if i == tug_gamestate.g.current_player then
+                minetest.chat_send_player(p, "Your turn.")
+            else
+                minetest.chat_send_player(p, tug_gamestate.g.players[tug_gamestate.g.current_player] .. "'s turn.")
+            end
+            found = true
+            
+        end
+    end
+
+    if not found then
+        minetest.chat_send_player(player:get_player_name(), "Use /start to start a game.")
+    end
+
     minetest.after(0, function()
         update_game_board()
     end)
@@ -190,19 +211,19 @@ minetest.register_chatcommand("start", {
     description = "default is singleplayer against engine, use player2 to play against an other player",
     privs = {},
     func = function(name, param)
-        tug_core.player1 = name
+        tug_gamestate.g.players[1] = name
         local t = split(param, " ")
         local player2 = t[#t]
 
         if player2 ~= "" then
-            tug_core.player2 = player2
+            tug_gamestate.g.players[2] = player2
         else
-            tug_core.player2 = ""
+            tug_gamestate.g.players[2] = ""
         end
         
-        local white = 1
+        tug_gamestate.g.white = 1
         if math.random(0, 1) == 1 then
-            white = 2
+            tug_gamestate.g.white = 2
             minetest.chat_send_player(name, "You play with the black pieces.")
             minetest.chat_send_player(player2, "You play with the white pieces.")
         else
@@ -210,7 +231,12 @@ minetest.register_chatcommand("start", {
             minetest.chat_send_player(player2, "You play with the black pieces.")
         end
 
-        tug_core.current_board = tug_chess_logic.get_default_board()
+        tug_gamestate.g.current_player = tug_gamestate.g.white
+
+        minetest.chat_send_player(tug_gamestate.g.players[tug_gamestate.g.current_player], "Your turn.")
+        minetest.chat_send_player(tug_gamestate.g.players[3 - tug_gamestate.g.current_player], tug_gamestate.g.players[tug_gamestate.g.current_player] .. "'s turn.")
+
+        tug_gamestate.g.current_board = tug_chess_logic.get_default_board()
         update_game_board()
         save_metadata()
     end,
@@ -222,37 +248,43 @@ minetest.register_on_punchnode(function(pos, node, puncher, pointed_thing)
         y = pos.y
         z = pos.z
         
-        if tug_core.current_board ~= nil then
-            if tug_core.current_selected == nil then
-                if tug_core.current_board[z + 1][x + 1].name ~= "" then
-                    tug_core.current_selected = {x = x, z = z}
-                    local objs = minetest.get_objects_in_area(vector.new(x - 0.5, y + 0.5, z - 0.5), vector.new(x + 0.5, y + 1.5, z + 0.5))
-                    objs[1]:set_properties({ textures = {objs[1]:get_properties().textures[1] .. "C8"}})
-                    local moves = tug_chess_logic.get_moves(x, z)
-                    for _, move in pairs(moves) do
-                        local node = minetest.get_node({x = move.x, y = ground_level, z = move.z})
-                        if node.name == prefix .. "light" or node.name == prefix .. "dark" then
-                            minetest.set_node({x = move.x, y = ground_level, z = move.z}, {name = prefix .. "frame"})
+        if tug_gamestate.g.current_board ~= nil and puncher:get_player_name() == tug_gamestate.g.players[tug_gamestate.g.current_player] then
+            if tug_gamestate.g.current_selected == nil then
+                if tug_gamestate.g.current_board[z + 1][x + 1].name ~= "" then
+                    local is_white = tug_gamestate.g.current_board[z + 1][x + 1].name == string.upper(tug_gamestate.g.current_board[z + 1][x + 1].name)
+                    if (tug_gamestate.g.current_player == tug_gamestate.g.white and is_white) or (tug_gamestate.g.current_player ~= tug_gamestate.g.white and not is_white) then
+                        tug_gamestate.g.current_selected = {x = x, z = z}
+                        local objs = minetest.get_objects_in_area(vector.new(x - 0.5, y + 0.5, z - 0.5), vector.new(x + 0.5, y + 1.5, z + 0.5))
+                        objs[1]:set_properties({ textures = {objs[1]:get_properties().textures[1] .. "C8"}})
+                        local moves = tug_chess_logic.get_moves(x + 1, z + 1)
+                        for _, move in pairs(moves) do
+                            local node = minetest.get_node({x = move.x, y = ground_level, z = move.z})
+                            if node.name == prefix .. "light" or node.name == prefix .. "dark" then
+                                minetest.set_node({x = move.x, y = ground_level, z = move.z}, {name = prefix .. "frame"})
+                            end
                         end
+                        tug_gamestate.g.current_selected.moves = moves
                     end
-                    tug_core.current_selected.moves = moves
                 end
             else
                 -- TODO: check if move in moves table
-                if (x ~= tug_core.current_selected.x) or (z ~= tug_core.current_selected.z) then
-                    tug_core.current_board[z + 1][x + 1].name = tug_core.current_board[tug_core.current_selected.z + 1][tug_core.current_selected.x + 1].name
-                    tug_core.current_board[tug_core.current_selected.z + 1][tug_core.current_selected.x + 1].name = ""
+                if (x ~= tug_gamestate.g.current_selected.x) or (z ~= tug_gamestate.g.current_selected.z) then
+                    tug_gamestate.g.current_board[z + 1][x + 1].name = tug_gamestate.g.current_board[tug_gamestate.g.current_selected.z + 1][tug_gamestate.g.current_selected.x + 1].name
+                    tug_gamestate.g.current_board[tug_gamestate.g.current_selected.z + 1][tug_gamestate.g.current_selected.x + 1].name = ""
+                    tug_gamestate.g.current_player = 3 - tug_gamestate.g.current_player
+                    minetest.chat_send_player(tug_gamestate.g.players[tug_gamestate.g.current_player], "Your turn.")
+                    minetest.chat_send_player(tug_gamestate.g.players[3 - tug_gamestate.g.current_player], tug_gamestate.g.players[tug_gamestate.g.current_player] .. "'s turn.")
                     save_metadata()
                 end
                 update_game_board()
-                tug_core.current_selected = nil
+                tug_gamestate.g.current_selected = nil
             end
         end
     end
 end)
 
 function update_game_board()
-    if tug_core.current_board == nil then
+    if tug_gamestate.g.current_board == nil then
         return
     end
 
@@ -264,7 +296,7 @@ function update_game_board()
                     obj:remove()
                 end
             end
-            local piece = tug_core.current_board[y + 1][x + 1]
+            local piece = tug_gamestate.g.current_board[y + 1][x + 1]
             if piece.name ~= "" then
                 local ent = minetest.add_entity(vector.new(x, ground_level + 0.5, y), prefix .. entity_lookup[string.upper(piece.name)])
                 if piece.name == string.upper(piece.name) then

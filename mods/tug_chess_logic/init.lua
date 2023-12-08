@@ -55,14 +55,46 @@ function tug_chess_logic.get_next_boards(board, id)
     -- RETURNS All next boards for a current player
 end
 
-function tug_chess_logic.get_moves(x, y)
-    -- RETURNS All possible moves for a piece at x, y
-    return {}
-end
+cases = {
+    [""] = function(r, c, white)
+        return {}
+    end,
+    ["p"] = function(r, c, white)
+        local moves = {}
+        if white then
+            table.insert(moves, {x = r + 1, z = c})
+            if r == 1 then
+                table.insert(moves, {x = 3, z = c})
+            end
+        else
+            table.insert(moves, {x = r - 1, z = c})
+            if r == 6 then
+                table.insert(moves, {x =4, z = c})
+            end
+        end
+        return moves
+    end,
+    ["n"] = function(r, c, white)
+        return {}
+    end,
+    ["b"] = function(r, c, white)
+        return {}
+    end,
+    ["r"] = function(r, c, white)
+        return {}
+    end,
+    ["q"] = function(r, c, white)
+        return {}
+    end,
+    ["k"] = function(r, c, white)
+        return {}
+    end,
+}
 
-function tug_chess_logic.check_move(board)
-    -- RETURNS true if the passed new board is a valid new board for the current_board
-    return true
+function tug_chess_logic.get_moves(r, c)
+    -- the moves are absolute
+    local name = tug_gamestate.g.current_board[r][c].name
+    return cases[string.lower(name)](r, c, string.upper(name) == name)
 end
 
 -- UTILS

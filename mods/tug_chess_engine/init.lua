@@ -107,8 +107,8 @@ function tug_chess_engine.heuristic(board, id)
 end
 
 function tug_chess_engine.minimax(board, depth, alpha, beta, max_p, id)
-    if max_p then new_boards = get_moves(board, id)
-    else new_boards = get_moves(board, -id + 3) end
+    if max_p then new_boards = tug_chess_logic.get_next_boards(board, id)
+    else new_boards = tug_chess_logic.get_next_boards(board, -id + 3) end
     
     if depth == 0 or #new_boards == 0 then return tug_chess_engine.heuristic(board, id) end
 
@@ -132,7 +132,7 @@ function tug_chess_engine.minimax(board, depth, alpha, beta, max_p, id)
 end
 
 function tug_chess_engine.engine_next_board(board, id)
-    local new_boards = get_moves(board, id)
+    local new_boards = tug_chess_logic.get_next_boards(board, id)
     local max_score = -math.huge
     local best_board = nil
 
