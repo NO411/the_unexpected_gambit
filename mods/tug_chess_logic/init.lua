@@ -2,7 +2,7 @@ local minetest, math, vector = minetest, math, vector
 local modname = minetest.get_current_modname()
 
 tug_chess_logic = {
-    current_board = nil,
+
 }
 
 function tug_chess_logic.get_default_board()
@@ -18,8 +18,8 @@ function tug_chess_logic.get_default_board()
                 {name = "R"},
                 {name = "N"},
                 {name = "B"},
-                {name = "K"},
                 {name = "Q"},
+                {name = "K"},
                 {name = "B"},
                 {name = "N"},
                 {name = "R"},
@@ -29,8 +29,8 @@ function tug_chess_logic.get_default_board()
                 {name = "r"},
                 {name = "n"},
                 {name = "b"},
-                {name = "k"},
                 {name = "q"},
+                {name = "k"},
                 {name = "b"},
                 {name = "n"},
                 {name = "r"},
@@ -45,14 +45,6 @@ function tug_chess_logic.get_default_board()
     return board
 end
 
-function tug_chess_logic.start()
-    tug_chess_logic.current_board = tug_chess_logic.get_default_board()
-end
-
-function tug_chess_logic.restart(board)
-    tug_chess_logic.current_board = board
-end
-
 -- TODOS
 
 function tug_chess_logic.has_won(board)
@@ -61,6 +53,16 @@ end
 
 function tug_chess_logic.get_next_boards(board, id)
     -- RETURNS All next boards for a current player
+end
+
+function tug_chess_logic.get_moves(x, y)
+    -- RETURNS All possible moves for a piece at x, y
+    return {}
+end
+
+function tug_chess_logic.check_move(board)
+    -- RETURNS true if the passed new board is a valid new board for the current_board
+    return true
 end
 
 -- UTILS
