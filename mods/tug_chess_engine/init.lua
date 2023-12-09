@@ -81,20 +81,23 @@ function tug_chess_engine.heuristic(board, id)
     local score = 0
     
     -- WIN
-    local winning_player = has_won(board)
+    local winning_player = tug_chess_logic.has_won(board)
     if winning_player == id then score = score + win_score
     elseif winning_player == -id + 3 then score = score - win_score end
 
+
     -- MATERIAL AND POSITION
-    for l, line in ipairs(board) do
-        for r, row in ipairs(board) do
+    for l, line in pairs(board) do
+        minetest.debug(dump(board))
+        minetest.debug(dump(line))
+        for r, row in pairs(line) do
             if row.name ~= "" then
                 if row.name == string.upper(row.name) then
-                    if id == 1 then score = score + piece_values[string.lower(row.name)] + piece_square_tables[string.lower(row.name)][l][r]
-                    else score = score - piece_values[string.lower(row.name)] - piece_square_tables[string.lower(row.name)][l][r] end
+                    if id == 1 then score = score + piece_values_lookup[string.lower(row.name)] + piece_square_tables[string.lower(row.name)][l][r]
+                    else score = score - piece_values_lookup[string.lower(row.name)] - piece_square_tables[string.lower(row.name)][l][r] end
                 else
-                    if id == 2 then score = score + piece_values[string.lower(row.name)] + piece_square_tables[string.lower(row.name)][9 - l][9 - r]
-                    else score = score - piece_values[string.lower(row.name)] - piece_square_tables[string.lower(row.name)][9 - l][9 - r] end
+                    if id == 2 then score = score + piece_values_lookup[string.lower(row.name)] + piece_square_tables[string.lower(row.name)][9 - l][9 - r]
+                    else score = score - piece_values_lookup[string.lower(row.name)] - piece_square_tables[string.lower(row.name)][9 - l][9 - r] end
                 end
             end
         end
@@ -107,20 +110,25 @@ function tug_chess_engine.heuristic(board, id)
 end
 
 function tug_chess_engine.minimax(board, depth, alpha, beta, max_p, id)
-    if max_p then new_boards = tug_chess_logic.get_next_boards(board, id)
-    else new_boards = tug_chess_logic.get_next_boards(board, -id + 3) end
-    
+    local new_boards = nil
+    if max_p then
+        new_boards = tug_chess_logic.get_next_boards(board, id)
+    else
+        new_boards = tug_chess_logic.get_next_boards(board, -id + 3)
+    end
+
     if depth == 0 or #new_boards == 0 then return tug_chess_engine.heuristic(board, id) end
 
+    local score = 0
     if max_p then
-        local score = -math.huge
+        score = -math.huge
         for _, b in ipairs(new_boards) do
             score = math.max(score, tug_chess_engine.minimax(b, depth - 1, alpha, beta, false, id))
             if score > beta then break end
             alpha = math.max(alpha, score)
         end
     else
-        local score = math.huge
+        score = math.huge
         for _, b in ipairs(new_boards) do
             score = math.min(score, tug_chess_engine.minimax(b, depth - 1, alpha, beta, true, id))
             if score < alpha then break end
@@ -137,7 +145,7 @@ function tug_chess_engine.engine_next_board(board, id)
     local best_board = nil
 
     for _, b in ipairs(new_boards) do
-        local score = tug_chess_engine.minimax(b, 10, -math.huge, math.huge, false, id)
+        local score = tug_chess_engine.minimax(b, 1, -math.huge, math.huge, false, id)
         if max_score < score then
             max_score = score
             best_board = b

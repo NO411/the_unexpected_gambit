@@ -146,6 +146,27 @@ for _, piece in pairs(entity_lookup) do
     })
 end
 
+local selected_textures = {}
+
+for n = 1, 6 do
+    table.insert(selected_textures, "tug_blank.png^[colorize:#ff000080")
+end
+
+minetest.register_entity(prefix .. "selected", {
+    initial_properties = {
+        visual = "cube",
+        physical = true,
+        pointable = false,
+        collide_with_objects = false,
+        textures = selected_textures,
+        visual_size = vector.new(1, 1, 1),
+        static_save = false,
+        use_texture_alpha = true,
+    },
+    on_step = function(self, dtime, moveresult)
+    end,
+})
+
 minetest.register_on_joinplayer(function(player)
     player:set_pos(vector.new(0, ground_level + 1, 0))
 
@@ -237,10 +258,22 @@ minetest.register_chatcommand("start", {
         minetest.chat_send_player(tug_gamestate.g.players[3 - tug_gamestate.g.current_player], tug_gamestate.g.players[tug_gamestate.g.current_player] .. "'s turn.")
 
         tug_gamestate.g.current_board = tug_chess_logic.get_default_board()
+
+        if (tug_gamestate.g.players[tug_gamestate.g.current_player] == "") then
+            tug_gamestate.g.current_board = tug_chess_engine.engine_next_board(tug_gamestate.g.current_board, tug_gamestate.g.current_player)
+            switch_player()
+        end
+
         update_game_board()
         save_metadata()
     end,
 })
+
+function switch_player()
+    tug_gamestate.g.current_player = 3 - tug_gamestate.g.current_player
+    minetest.chat_send_player(tug_gamestate.g.players[tug_gamestate.g.current_player], "Your turn.")
+    minetest.chat_send_player(tug_gamestate.g.players[3 - tug_gamestate.g.current_player], tug_gamestate.g.players[tug_gamestate.g.current_player] .. "'s turn.")
+end
 
 minetest.register_on_punchnode(function(pos, node, puncher, pointed_thing)
     if node.name == prefix .. "light" or node.name == prefix .. "dark" then
@@ -256,12 +289,10 @@ minetest.register_on_punchnode(function(pos, node, puncher, pointed_thing)
                         tug_gamestate.g.current_selected = {x = x, z = z}
                         local objs = minetest.get_objects_in_area(vector.new(x - 0.5, y + 0.5, z - 0.5), vector.new(x + 0.5, y + 1.5, z + 0.5))
                         objs[1]:set_properties({ textures = {objs[1]:get_properties().textures[1] .. "C8"}})
-                        local moves = tug_chess_logic.get_moves(x + 1, z + 1)
+                        minetest.debug("Selected " .. tug_gamestate.g.current_board[z + 1][x + 1].name .. " (x=" .. x + 1 .. ", z=" .. z + 1 .. ")")
+                        local moves = tug_chess_logic.get_moves(z + 1, x + 1)
                         for _, move in pairs(moves) do
-                            local node = minetest.get_node({x = move.x, y = ground_level, z = move.z})
-                            if node.name == prefix .. "light" or node.name == prefix .. "dark" then
-                                minetest.set_node({x = move.x, y = ground_level, z = move.z}, {name = prefix .. "frame"})
-                            end
+                            minetest.add_entity(vector.new(move.x - 1, y + 0.05, move.z - 1), prefix .. "selected")
                         end
                         tug_gamestate.g.current_selected.moves = moves
                     end
@@ -269,12 +300,22 @@ minetest.register_on_punchnode(function(pos, node, puncher, pointed_thing)
             else
                 -- TODO: check if move in moves table
                 if (x ~= tug_gamestate.g.current_selected.x) or (z ~= tug_gamestate.g.current_selected.z) then
-                    tug_gamestate.g.current_board[z + 1][x + 1].name = tug_gamestate.g.current_board[tug_gamestate.g.current_selected.z + 1][tug_gamestate.g.current_selected.x + 1].name
-                    tug_gamestate.g.current_board[tug_gamestate.g.current_selected.z + 1][tug_gamestate.g.current_selected.x + 1].name = ""
-                    tug_gamestate.g.current_player = 3 - tug_gamestate.g.current_player
-                    minetest.chat_send_player(tug_gamestate.g.players[tug_gamestate.g.current_player], "Your turn.")
-                    minetest.chat_send_player(tug_gamestate.g.players[3 - tug_gamestate.g.current_player], tug_gamestate.g.players[tug_gamestate.g.current_player] .. "'s turn.")
-                    save_metadata()
+                    local selected_move = nil
+                    for _, m in pairs(tug_gamestate.g.current_selected.moves) do
+                        if (m.x == x + 1) and (m.z == z + 1) then
+                            selected_move = m
+                            break
+                        end
+                    end
+                    if selected_move then
+                        tug_gamestate.g.current_board = tug_chess_logic.apply_move({x = tug_gamestate.g.current_selected.x + 1, z = tug_gamestate.g.current_selected.z + 1}, selected_move, tug_gamestate.g.current_board)
+                        switch_player()
+                        if tug_gamestate.g.players[tug_gamestate.g.current_player] == "" then
+                            tug_gamestate.g.current_board = tug_chess_engine.engine_next_board(tug_gamestate.g.current_board, tug_gamestate.g.current_player)
+                            switch_player()
+                        end
+                        save_metadata()
+                    end
                 end
                 update_game_board()
                 tug_gamestate.g.current_selected = nil
