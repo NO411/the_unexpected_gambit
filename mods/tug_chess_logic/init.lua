@@ -72,11 +72,27 @@ function tug_chess_logic.get_next_boards(board, id)
     -- id = 2 black
     local boards = {}
 
-    for z = 1, 8 do
+	local start_z = 0
+	local end_z = 0
+	local d = 0
+	local piece_count = 0
+
+	if id == 1 then
+		start_z = 1
+		end_z = 8
+		d = 1
+	else
+		start_z = 8
+		end_z = 1
+		d = -1
+	end
+
+    for z = start_z, end_z, d do
         for x = 1, 8 do
             local piece = board[z][x]
 
             if ((string.upper(piece.name) == piece.name) and (id == 1)) or ((string.lower(piece.name) == piece.name) and (id == 2)) then
+				piece_count = piece_count + 1
                 local moves = cases[string.lower(piece.name)](deepcopy(board), z, x, string.upper(piece.name) == piece.name, false)
                 if moves then
                     for _, move in pairs(moves) do
@@ -84,7 +100,10 @@ function tug_chess_logic.get_next_boards(board, id)
                     end
                 end
             end
+
+			if piece_count > 15 then break end
         end
+		if piece_count > 15 then break end
     end
     return boards
 end
