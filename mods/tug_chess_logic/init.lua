@@ -419,7 +419,7 @@ cases = {
             for _, xm in ipairs(z_dir) do
                 -- 8 possible moves (x = 0, z = 0 is not possible)
                 if not (zm == 0 and xm == 0) then
-                    table.insert(moves, move)
+                    table.insert(moves, {z = z + zm, x = x + xm})
                 end
             end
         end
