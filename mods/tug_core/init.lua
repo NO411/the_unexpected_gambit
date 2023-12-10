@@ -9,7 +9,6 @@ tug_gamestate.g = loaded_gamestate
 if loaded_gamestate == nil then
     tug_gamestate.g = {
         players = {"", ""},
-        white = nil,
         current_player = nil,
         current_selected = nil,
         current_board = nil,
@@ -228,7 +227,7 @@ minetest.register_on_joinplayer(function(player)
             if i == tug_gamestate.g.current_player then
                 minetest.chat_send_player(p, "Your turn.")
             else
-                minetest.chat_send_player(p, tug_gamestate.g.players[tug_gamestate.g.current_player] .. "'s turn.")
+                minetest.chat_send_player(p, tug_gamestate.g.players[tug_gamestate.g.current_player].name .. "'s turn.")
             end
             found = true
             
@@ -254,8 +253,8 @@ end
 
 local function switch_player()
     tug_gamestate.g.current_player = 3 - tug_gamestate.g.current_player
-    minetest.chat_send_player(tug_gamestate.g.players[tug_gamestate.g.current_player], "Your turn.")
-    minetest.chat_send_player(tug_gamestate.g.players[3 - tug_gamestate.g.current_player], tug_gamestate.g.players[tug_gamestate.g.current_player] .. "'s turn.")
+    minetest.chat_send_player(tug_gamestate.g.players[tug_gamestate.g.current_player].name, "Your turn.")
+    minetest.chat_send_player(tug_gamestate.g.players[3 - tug_gamestate.g.current_player].name, tug_gamestate.g.players[tug_gamestate.g.current_player].name .. "'s turn.")
 end
 
 minetest.register_chatcommand("start", {
@@ -263,19 +262,21 @@ minetest.register_chatcommand("start", {
     description = "default is singleplayer against engine, use player2 to play against an other player",
     privs = {},
     func = function(name, param)
-        tug_gamestate.g.players[1] = name
+        tug_gamestate.g.players[1] = {name = name, color = 1}
         local t = split(param, " ")
         local player2 = t[#t]
 
         if player2 ~= "" then
-            tug_gamestate.g.players[2] = player2
+            tug_gamestate.g.players[2] = {name = player2, color = 2}
         else
-            tug_gamestate.g.players[2] = ""
+            tug_gamestate.g.players[2] = {name = "", color = 2}
         end
-        
-        tug_gamestate.g.white = 1
+
+        tug_gamestate.g.current_player = 1
         if math.random(0, 1) == 1 then
-            tug_gamestate.g.white = 2
+            tug_gamestate.g.players[1].color = 2
+            tug_gamestate.g.players[2].color = 1
+            tug_gamestate.g.current_player = 2
             minetest.chat_send_player(name, "You play with the black pieces.")
             minetest.chat_send_player(player2, "You play with the white pieces.")
         else
@@ -283,15 +284,15 @@ minetest.register_chatcommand("start", {
             minetest.chat_send_player(player2, "You play with the black pieces.")
         end
 
-        tug_gamestate.g.current_player = tug_gamestate.g.white
-
-        minetest.chat_send_player(tug_gamestate.g.players[tug_gamestate.g.current_player], "Your turn.")
-        minetest.chat_send_player(tug_gamestate.g.players[3 - tug_gamestate.g.current_player], tug_gamestate.g.players[tug_gamestate.g.current_player] .. "'s turn.")
+        minetest.chat_send_player(tug_gamestate.g.players[tug_gamestate.g.current_player].name, "Your turn.")
+        minetest.chat_send_player(tug_gamestate.g.players[3 - tug_gamestate.g.current_player].name, tug_gamestate.g.players[tug_gamestate.g.current_player].name .. "'s turn.")
 
         tug_gamestate.g.current_board = tug_chess_logic.get_default_board()
 
-        if (tug_gamestate.g.players[tug_gamestate.g.current_player] == "") then
-            tug_gamestate.g.current_board = tug_chess_engine.engine_next_board(tug_gamestate.g.current_board, tug_gamestate.g.current_player)
+        update_game_board()
+
+        if (tug_gamestate.g.players[tug_gamestate.g.current_player].name == "") then
+            tug_gamestate.g.current_board = tug_chess_engine.engine_next_board(tug_gamestate.g.current_board, tug_gamestate.g.players[2].color)
             switch_player()
         end
 
@@ -306,11 +307,15 @@ minetest.register_on_punchnode(function(pos, node, puncher, pointed_thing)
         y = pos.y
         z = pos.z
         
-        if tug_gamestate.g.current_board ~= nil and puncher:get_player_name() == tug_gamestate.g.players[tug_gamestate.g.current_player] then
+        -- is current player the puncher
+        if tug_gamestate.g.current_board ~= nil and puncher:get_player_name() == tug_gamestate.g.players[tug_gamestate.g.current_player].name then
             if tug_gamestate.g.current_selected == nil then
+                -- check if piece is on square
                 if tug_gamestate.g.current_board[z + 1][x + 1].name ~= "" then
+                    -- punched piece (if white or not)
                     local is_white = tug_gamestate.g.current_board[z + 1][x + 1].name == string.upper(tug_gamestate.g.current_board[z + 1][x + 1].name)
-                    if (tug_gamestate.g.current_player == tug_gamestate.g.white and is_white) or (tug_gamestate.g.current_player ~= tug_gamestate.g.white and not is_white) then
+                    -- check wether player color matches punched piece color
+                    if (tug_gamestate.g.players[tug_gamestate.g.current_player].color == 1 and is_white) or (tug_gamestate.g.players[tug_gamestate.g.current_player].color == 2 and not is_white) then
                         tug_gamestate.g.current_selected = {x = x, z = z}
                         local objs = minetest.get_objects_in_area(vector.new(x - 0.5, y + 0.5, z - 0.5), vector.new(x + 0.5, y + 1.5, z + 0.5))
                         objs[1]:set_properties({ textures = {objs[1]:get_properties().textures[1] .. "C8"}})
@@ -333,8 +338,9 @@ minetest.register_on_punchnode(function(pos, node, puncher, pointed_thing)
                     if selected_move then
                         tug_gamestate.g.current_board = tug_chess_logic.apply_move({x = tug_gamestate.g.current_selected.x + 1, z = tug_gamestate.g.current_selected.z + 1}, selected_move, tug_gamestate.g.current_board)
                         switch_player()
-                        if tug_gamestate.g.players[tug_gamestate.g.current_player] == "" then
-                            tug_gamestate.g.current_board = tug_chess_engine.engine_next_board(tug_gamestate.g.current_board, tug_gamestate.g.current_player)
+                        update_game_board()
+                        if tug_gamestate.g.players[tug_gamestate.g.current_player].name == "" then
+                            tug_gamestate.g.current_board = tug_chess_engine.engine_next_board(tug_gamestate.g.current_board, tug_gamestate.g.players[2].color)
                             switch_player()
                         end
                         save_metadata()

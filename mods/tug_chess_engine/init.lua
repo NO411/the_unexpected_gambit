@@ -1,7 +1,13 @@
 local minetest, math, vector = minetest, math, vector
 local modname = minetest.get_current_modname()
 
-tug_chess_engine = {}
+tug_chess_engine = {
+    engine_1 = {
+        win_scale = 100000,
+        material_scale = 10000,
+        position_scale = 1,
+    }
+}
 
 local win_score = 1.00
 
@@ -77,13 +83,13 @@ local piece_square_tables = {
     }
 }
 
-function tug_chess_engine.heuristic(board, id)
+function tug_chess_engine.heuristic(board, id, engine)
     local score = 0
     
     -- WIN
     local winning_player = tug_chess_logic.has_won(board)
-    if winning_player == id then score = score + win_score
-    elseif winning_player == -id + 3 then score = score - win_score end
+    if winning_player == id then score = score + win_score * engine.win_scale
+    elseif winning_player == -id + 3 then score = score - win_score * engine.win_scale end
 
 
     -- MATERIAL AND POSITION
@@ -91,11 +97,21 @@ function tug_chess_engine.heuristic(board, id)
         for r, row in pairs(line) do
             if row.name ~= "" then
                 if row.name == string.upper(row.name) then
-                    if id == 1 then score = score + piece_values_lookup[string.lower(row.name)] + piece_square_tables[string.lower(row.name)][l][r]
-                    else score = score - piece_values_lookup[string.lower(row.name)] - piece_square_tables[string.lower(row.name)][l][r] end
+                    if id == 1 then
+                        score = score + piece_values_lookup[string.lower(row.name)] * engine.material_scale
+                        score = score + piece_square_tables[string.lower(row.name)][9 - l][9 - r] * engine.position_scale
+                    else
+                        score = score - piece_values_lookup[string.lower(row.name)] * engine.material_scale
+                        score = score - piece_square_tables[string.lower(row.name)][9 - l][9 - r] * engine.position_scale
+                    end
                 else
-                    if id == 2 then score = score + piece_values_lookup[string.lower(row.name)] + piece_square_tables[string.lower(row.name)][9 - l][9 - r]
-                    else score = score - piece_values_lookup[string.lower(row.name)] - piece_square_tables[string.lower(row.name)][9 - l][9 - r] end
+                    if id == 2 then
+                        score = score + piece_values_lookup[string.lower(row.name)] * engine.material_scale
+                        score = score + piece_square_tables[string.lower(row.name)][l][r] * engine.position_scale
+                    else
+                        score = score - piece_values_lookup[string.lower(row.name)] * engine.material_scale
+                        score = score - piece_square_tables[string.lower(row.name)][l][r] * engine.position_scale
+                    end
                 end
             end
         end
@@ -108,7 +124,7 @@ function tug_chess_engine.heuristic(board, id)
 end
 
 function tug_chess_engine.minimax(board, depth, alpha, beta, max_p, id)
-    if depth == 0 or tug_chess_logic.has_won(board) ~= 0 then return tug_chess_engine.heuristic(board, id) end
+    if depth == 0 or tug_chess_logic.has_won(board) ~= 0 then return tug_chess_engine.heuristic(board, id, tug_chess_engine.engine_1) end
     
     local new_boards = nil
     if max_p then

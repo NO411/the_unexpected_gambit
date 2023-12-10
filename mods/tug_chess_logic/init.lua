@@ -110,32 +110,34 @@ end
 
 function tug_chess_logic.apply_move(from, to, input_board)
     -- to is the apllied move which includes the needed metadata
-    input_board[to.z][to.x] = input_board[from.z][from.x]
-    input_board[from.z][from.x] = {name = ""}
+    local board = deepcopy(input_board)
+
+    board[to.z][to.x] = board[from.z][from.x]
+    board[from.z][from.x] = {name = ""}
 
     -- apply en passant
     if to.en_passant then
         if from.z < to.z then
-            input_board[to.z - 1][to.x] = {name = ""}
+            board[to.z - 1][to.x] = {name = ""}
         else
-            input_board[to.z + 1][to.x] = {name = ""}
+            board[to.z + 1][to.x] = {name = ""}
         end
     end
 
     -- apply rook move on castling
     if to.castling then
         if to.x == 7 then
-            input_board[to.z][6] = input_board[from.z][8]
-            input_board[to.z][6].moved = true
-            input_board[from.z][8] = {name = ""}
+            board[to.z][6] = board[from.z][8]
+            board[to.z][6].moved = true
+            board[from.z][8] = {name = ""}
         else
-            input_board[to.z][4] = input_board[from.z][1]
-            input_board[to.z][4].moved = true
-            input_board[from.z][1] = {name = ""}
+            board[to.z][4] = board[from.z][1]
+            board[to.z][4].moved = true
+            board[from.z][1] = {name = ""}
         end
     end
 
-    return input_board
+    return board
 end
 
 local function in_bounds(coord)
@@ -209,7 +211,7 @@ end
 
 local function in_check_when_move(board, from, to, white)
     -- king castle already filtered in cases["k"]
-    if in_check(tug_chess_logic.apply_move(from, to, deepcopy(board)), white) then
+    if in_check(tug_chess_logic.apply_move(from, to, board), white) then
         return true
     end
     return false
