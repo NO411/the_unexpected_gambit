@@ -209,7 +209,7 @@ end
 
 local function in_check_when_move(board, from, to, white)
     -- king castle already filtered in cases["k"]
-    if in_check(tug_chess_logic.apply_move(from, to, board), white) then
+    if in_check(tug_chess_logic.apply_move(from, to, deepcopy(board)), white) then
         return true
     end
     return false

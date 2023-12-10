@@ -252,6 +252,12 @@ function split(s, delimiter)
     return result
 end
 
+local function switch_player()
+    tug_gamestate.g.current_player = 3 - tug_gamestate.g.current_player
+    minetest.chat_send_player(tug_gamestate.g.players[tug_gamestate.g.current_player], "Your turn.")
+    minetest.chat_send_player(tug_gamestate.g.players[3 - tug_gamestate.g.current_player], tug_gamestate.g.players[tug_gamestate.g.current_player] .. "'s turn.")
+end
+
 minetest.register_chatcommand("start", {
     params = "[player2]",
     description = "default is singleplayer against engine, use player2 to play against an other player",
@@ -294,12 +300,6 @@ minetest.register_chatcommand("start", {
     end,
 })
 
-local function switch_player()
-    tug_gamestate.g.current_player = 3 - tug_gamestate.g.current_player
-    minetest.chat_send_player(tug_gamestate.g.players[tug_gamestate.g.current_player], "Your turn.")
-    minetest.chat_send_player(tug_gamestate.g.players[3 - tug_gamestate.g.current_player], tug_gamestate.g.players[tug_gamestate.g.current_player] .. "'s turn.")
-end
-
 minetest.register_on_punchnode(function(pos, node, puncher, pointed_thing)
     if node.name == prefix .. "light" or node.name == prefix .. "dark" then
         x = pos.x
@@ -322,7 +322,6 @@ minetest.register_on_punchnode(function(pos, node, puncher, pointed_thing)
                     end
                 end
             else
-                -- TODO: check if move in moves table
                 if (x ~= tug_gamestate.g.current_selected.x) or (z ~= tug_gamestate.g.current_selected.z) then
                     local selected_move = nil
                     for _, m in pairs(tug_gamestate.g.current_selected.moves) do
