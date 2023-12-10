@@ -269,7 +269,7 @@ cases = {
             table.insert(moves, one_step)
 
             local two_square_move = {z = z + 2 * direction, x = x, moved = true}
-            if is_empty(board, two_square_move) and (white and z == 2) or (not white and z == 7) then
+            if is_empty(board, two_square_move) and ((white and z == 2) or (not white and z == 7)) then
                 table.insert(moves, two_square_move)
             end
         end
