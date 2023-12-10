@@ -289,7 +289,6 @@ minetest.register_on_punchnode(function(pos, node, puncher, pointed_thing)
                         tug_gamestate.g.current_selected = {x = x, z = z}
                         local objs = minetest.get_objects_in_area(vector.new(x - 0.5, y + 0.5, z - 0.5), vector.new(x + 0.5, y + 1.5, z + 0.5))
                         objs[1]:set_properties({ textures = {objs[1]:get_properties().textures[1] .. "C8"}})
-                        minetest.debug("Selected " .. tug_gamestate.g.current_board[z + 1][x + 1].name .. " (x=" .. x + 1 .. ", z=" .. z + 1 .. ")")
                         local moves = tug_chess_logic.get_moves(z + 1, x + 1)
                         for _, move in pairs(moves) do
                             minetest.add_entity(vector.new(move.x - 1, y + 0.05, move.z - 1), prefix .. "selected")

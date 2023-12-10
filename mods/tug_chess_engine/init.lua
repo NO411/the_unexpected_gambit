@@ -88,8 +88,6 @@ function tug_chess_engine.heuristic(board, id)
 
     -- MATERIAL AND POSITION
     for l, line in pairs(board) do
-        minetest.debug(dump(board))
-        minetest.debug(dump(line))
         for r, row in pairs(line) do
             if row.name ~= "" then
                 if row.name == string.upper(row.name) then
