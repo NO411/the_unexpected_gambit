@@ -76,13 +76,11 @@ minetest.register_node(prefix .. "frame_corner", {
 
 minetest.register_node(prefix .. "dark", {
 	tiles = {"tug_blank.png^[colorize:" .. colors.dark_square},
-	--pointable = false,
     is_ground_content = false,
 })
 
 minetest.register_node(prefix .. "light", {
 	tiles = {"tug_blank.png^[colorize:" .. colors.light_square},
-	--pointable = false,
     is_ground_content = false,
 })
 
@@ -90,6 +88,19 @@ minetest.register_node(prefix .. "barrier", {
     drawtype = "airlike",
     paramtype = "light",
     sunlight_propagates = true,
+})
+
+-- hack to get higher hand range, set on joinplayer
+local function set_player_hand(player)
+    player:get_inventory():set_stack("main", 1, {name = prefix .. "hand"})
+end
+
+minetest.register_craftitem(prefix .. "hand", {
+    range = 20,
+    on_drop = function(itemstack, dropper, pos)
+        itemstack:clear()
+        set_player_hand(dropper)
+    end,
 })
 
 minetest.register_on_generated(function(minp, maxp, blockseed)
@@ -170,6 +181,20 @@ minetest.register_entity(prefix .. "selected", {
 minetest.register_on_joinplayer(function(player)
     player:set_pos(vector.new(0, ground_level + 1, 0))
 
+    local name = player:get_player_name()
+    local basic_privs = minetest.get_player_privs(name)
+    basic_privs.fly = true
+    minetest.set_player_privs(name, basic_privs)
+
+    player:hud_set_hotbar_itemcount(1)
+    player:get_inventory():set_size("main", 1)
+    set_player_hand(player)
+    player:set_inventory_formspec(
+		"formspec_version[4]" ..
+		"size[10, 10]" ..
+		"label[0.5,0.5; ]"
+	)
+
     local clr1 = colors.sky
 	player:set_sky({
         clouds = false,
@@ -199,7 +224,7 @@ minetest.register_on_joinplayer(function(player)
 
     local found = false
     for i, p in ipairs(tug_gamestate.g.players) do
-        if p == player:get_player_name() then
+        if p == name then
             if i == tug_gamestate.g.current_player then
                 minetest.chat_send_player(p, "Your turn.")
             else
@@ -211,7 +236,7 @@ minetest.register_on_joinplayer(function(player)
     end
 
     if not found then
-        minetest.chat_send_player(player:get_player_name(), "Use /start to start a game.")
+        minetest.chat_send_player(name, "Use /start to start a game.")
     end
 
     minetest.after(0, function()
@@ -269,7 +294,7 @@ minetest.register_chatcommand("start", {
     end,
 })
 
-function switch_player()
+local function switch_player()
     tug_gamestate.g.current_player = 3 - tug_gamestate.g.current_player
     minetest.chat_send_player(tug_gamestate.g.players[tug_gamestate.g.current_player], "Your turn.")
     minetest.chat_send_player(tug_gamestate.g.players[3 - tug_gamestate.g.current_player], tug_gamestate.g.players[tug_gamestate.g.current_player] .. "'s turn.")
