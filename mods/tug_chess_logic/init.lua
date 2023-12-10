@@ -429,23 +429,22 @@ cases = {
         -- castling
         if not moved(board, {z = z, x = x}) then
             -- z is either 0 or 7
-
             -- king side
             local rook = {z = z, x = 8}
-            if get_name(board, rook) == "rook" and not moved(board, rook) and
+            if string.lower(get_name(board, rook)) == "r" and (not moved(board, rook)) and
             is_empty(board, {z = z, x = 7}) and
             is_empty(board, {z = z, x = 6}) and
             not in_check_when_move(board, {z = z, x = x}, {z = z, x = 6}, white) then
-                table.insert_all(moves, {z = z, x = 7, castling = true})
+                table.insert(moves, {z = z, x = 7, castling = true})
             end
             -- queen side
             rook = {z = z, x = 1}
-            if get_name(board, rook) == "rook" and not moved(board, rook) and
+            if string.lower(get_name(board, rook)) == "r" and (not moved(board, rook)) and
             is_empty(board, {z = z, x = 2}) and
             is_empty(board, {z = z, x = 3}) and
             is_empty(board, {z = z, x = 4}) and
             not in_check_when_move(board, {z = z, x = x}, {z = z, x = 4}, white) then
-                table.insert_all(moves, {z = z, x = 7, castling = true})
+                table.insert(moves, {z = z, x = 3, castling = true})
             end
         end
 

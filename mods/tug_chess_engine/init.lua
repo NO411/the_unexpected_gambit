@@ -5,7 +5,7 @@ tug_chess_engine = {
     engine_1 = {
         win_scale = 100000,
         material_scale = 10000,
-        position_scale = 1,
+        position_scale = 1000,
     }
 }
 
@@ -159,7 +159,7 @@ function tug_chess_engine.engine_next_board(board, id)
     local eval_boards = {}
 
     for _, b in ipairs(new_boards) do
-        local score = tug_chess_engine.minimax(b, 2, -math.huge, math.huge, false, id)
+        local score = tug_chess_engine.minimax(b, 3, -math.huge, math.huge, false, id)
         table.insert(eval_boards, {b, score})
         if max_score < score then
             max_score = score
