@@ -3,8 +3,8 @@ local modname = minetest.get_current_modname()
 
 tug_chess_engine = {
     engine_1 = {
-        win_scale = 100000,
-        material_scale = 10000,
+        win_scale = 10000000,
+        material_scale = 100000,
         position_scale = 1000,
     }
 }
@@ -17,7 +17,7 @@ local piece_values_lookup = {
     ["b"] = 0.30,
     ["r"] = 0.50,
     ["q"] = 0.90,
-    ["k"] = 0.00,
+    ["k"] = 100.00,
 }
 
 local piece_square_tables = {

@@ -108,38 +108,6 @@ function tug_chess_logic.get_next_boards(board, id)
     return boards
 end
 
-function tug_chess_logic.apply_move(from, to, input_board)
-    -- to is the apllied move which includes the needed metadata
-    local board = deepcopy(input_board)
-
-    board[to.z][to.x] = board[from.z][from.x]
-    board[from.z][from.x] = {name = ""}
-
-    -- apply en passant
-    if to.en_passant then
-        if from.z < to.z then
-            board[to.z - 1][to.x] = {name = ""}
-        else
-            board[to.z + 1][to.x] = {name = ""}
-        end
-    end
-
-    -- apply rook move on castling
-    if to.castling then
-        if to.x == 7 then
-            board[to.z][6] = board[from.z][8]
-            board[to.z][6].moved = true
-            board[from.z][8] = {name = ""}
-        else
-            board[to.z][4] = board[from.z][1]
-            board[to.z][4].moved = true
-            board[from.z][1] = {name = ""}
-        end
-    end
-
-    return board
-end
-
 local function in_bounds(coord)
     return coord.x >= 1 and coord.x <= 8 and coord.z >= 1 and coord.z <= 8
 end
@@ -172,6 +140,60 @@ local function is_same_color(board, coord, white)
         return false
     end
     return (white == (string.upper(name) == name))
+end
+
+function tug_chess_logic.apply_move(from, to, input_board)
+    -- to is the apllied move which includes the needed metadata
+    local board = deepcopy(input_board)
+
+    board[to.z][to.x] = board[from.z][from.x]
+    board[from.z][from.x] = {name = ""}
+
+    local name = get_name(board, to)
+    local moved = to.moved
+
+    get_piece(board, to).moved = moved
+
+    local is_white = (string.upper(name) == name)
+    -- set moved for opponents pawns to false
+    for z = 1, 8 do
+        for x = 1, 8 do
+            local _name = get_name(board, {z = z, x = x})
+            -- diferent color
+            if (_name == string.lower(_name) and is_white) or
+            (_name == string.upper(_name) and not is_white) then
+                board[to.z][to.x].moved = false
+            end
+        end
+    end
+
+    -- apply en passant
+    if to.en_passant then
+        local dir = 1
+        if string.lower(name) == name then
+            dir = -1
+        end
+        if from.x < to.x then
+            board[to.z - 1 * dir][to.x + 1] = {name = ""}
+        else
+            board[to.z - 1 * dir][to.x - 1] = {name = ""}
+        end
+    end
+
+    -- apply rook move on castling
+    if to.castling then
+        if to.x == 7 then
+            board[to.z][6] = board[from.z][8]
+            board[to.z][6].moved = true
+            board[from.z][8] = {name = ""}
+        else
+            board[to.z][4] = board[from.z][1]
+            board[to.z][4].moved = true
+            board[from.z][1] = {name = ""}
+        end
+    end
+
+    return board
 end
 
 local function in_check(board, white)
@@ -291,7 +313,7 @@ cases = {
         for rl = -1, 1, 2 do
             local coord = {z = z, x = x + rl}
             if in_bounds(coord) then
-                if not is_same_color(board, coord, white) and get_piece(board, coord).moved and string.lower(get_name(board, coord)) == "p" then
+                if not is_same_color(board, coord, white) and moved(board, coord) and string.lower(get_name(board, coord)) == "p" then
                     table.insert(moves, {z = z + (white and 1 or -1), x = x + rl, en_passant = true})
                 end
             end
@@ -421,7 +443,7 @@ cases = {
             for _, xm in ipairs(z_dir) do
                 -- 8 possible moves (x = 0, z = 0 is not possible)
                 if not (zm == 0 and xm == 0) then
-                    table.insert(moves, {z = z + zm, x = x + xm})
+                    table.insert(moves, {z = z + zm, x = x + xm, moved = true})
                 end
             end
         end
@@ -435,7 +457,7 @@ cases = {
             is_empty(board, {z = z, x = 7}) and
             is_empty(board, {z = z, x = 6}) and
             not in_check_when_move(board, {z = z, x = x}, {z = z, x = 6}, white) then
-                table.insert(moves, {z = z, x = 7, castling = true})
+                table.insert(moves, {z = z, x = 7, castling = true, moved = true})
             end
             -- queen side
             rook = {z = z, x = 1}
@@ -444,7 +466,7 @@ cases = {
             is_empty(board, {z = z, x = 3}) and
             is_empty(board, {z = z, x = 4}) and
             not in_check_when_move(board, {z = z, x = x}, {z = z, x = 4}, white) then
-                table.insert(moves, {z = z, x = 3, castling = true})
+                table.insert(moves, {z = z, x = 3, castling = true, moved = true})
             end
         end
 

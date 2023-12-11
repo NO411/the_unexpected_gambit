@@ -336,7 +336,10 @@ minetest.register_on_punchnode(function(pos, node, puncher, pointed_thing)
                         end
                     end
                     if selected_move then
-                        tug_gamestate.g.current_board = tug_chess_logic.apply_move({x = tug_gamestate.g.current_selected.x + 1, z = tug_gamestate.g.current_selected.z + 1}, selected_move, tug_gamestate.g.current_board)
+                        local move = tug_gamestate.g.current_selected
+                        move.x = move.x + 1
+                        move.z = move.z + 1
+                        tug_gamestate.g.current_board = tug_chess_logic.apply_move(move, selected_move, tug_gamestate.g.current_board)
                         switch_player()
                         update_game_board()
                         if tug_gamestate.g.players[tug_gamestate.g.current_player].name == "" then
