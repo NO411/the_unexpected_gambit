@@ -162,7 +162,7 @@ function tug_chess_logic.apply_move(from, to, input_board)
             -- diferent color
             if (_name == string.lower(_name) and is_white) or
             (_name == string.upper(_name) and not is_white) then
-                board[to.z][to.x].moved = false
+                board[z][x].moved = false
             end
         end
     end
@@ -174,9 +174,9 @@ function tug_chess_logic.apply_move(from, to, input_board)
             dir = -1
         end
         if from.x < to.x then
-            board[to.z - 1 * dir][to.x + 1] = {name = ""}
+            board[to.z - 1 * dir][to.x] = {name = ""}
         else
-            board[to.z - 1 * dir][to.x - 1] = {name = ""}
+            board[to.z - 1 * dir][to.x] = {name = ""}
         end
     end
 
@@ -313,8 +313,8 @@ cases = {
         for rl = -1, 1, 2 do
             local coord = {z = z, x = x + rl}
             if in_bounds(coord) then
-                if not is_same_color(board, coord, white) and moved(board, coord) and string.lower(get_name(board, coord)) == "p" then
-                    table.insert(moves, {z = z + (white and 1 or -1), x = x + rl, en_passant = true})
+                if (not is_same_color(board, coord, white)) and moved(board, coord) and string.lower(get_name(board, coord)) == "p" then
+                    table.insert(moves, {z = z + 1 * direction, x = x + rl, en_passant = true})
                 end
             end
         end
