@@ -160,8 +160,8 @@ function tug_chess_logic.apply_move(from, to, input_board)
         for x = 1, 8 do
             local _name = get_name(board, {z = z, x = x})
             -- diferent color
-            if (_name == string.lower(_name) and is_white) or
-            (_name == string.upper(_name) and not is_white) then
+            if ((_name == string.lower(_name) and is_white) or
+            (_name == string.upper(_name) and not is_white)) and string.lower(_name) == "p"  then
                 board[z][x].moved = false
             end
         end
@@ -384,7 +384,7 @@ cases = {
     ["r"] = function(board, z, x, white, check_for_check)
         local moves = {}
         for zp = 1, 7 do
-            local move = {z = z + zp, x = x}
+            local move = {z = z + zp, x = x, moved = true}
             if is_empty(board, move) then
                 table.insert(moves, move)
             else
@@ -393,7 +393,7 @@ cases = {
             end
         end
         for zn = 1, 7 do
-            local move = {z = z - zn, x = x}
+            local move = {z = z - zn, x = x, moved = true}
             if is_empty(board, move) then
                 table.insert(moves, move)
             else
@@ -402,7 +402,7 @@ cases = {
             end
         end
         for xp = 1, 7 do
-            local move = {z = z, x = x + xp}
+            local move = {z = z, x = x + xp, moved = true}
             if is_empty(board, move) then
                 table.insert(moves, move)
             else
@@ -411,7 +411,7 @@ cases = {
             end
         end
         for xn = 1, 7 do
-            local move = {z = z, x = x - xn}
+            local move = {z = z, x = x - xn, moved = true}
             if is_empty(board, move) then
                 table.insert(moves, move)
             else
