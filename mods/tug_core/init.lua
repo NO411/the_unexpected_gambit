@@ -16,6 +16,7 @@ if loaded_gamestate == nil then
 end
 
 tug_core = {
+    engine_moves_true = 3,
 }
 
 -- metadata
@@ -257,6 +258,20 @@ local function switch_player()
     minetest.chat_send_player(tug_gamestate.g.players[3 - tug_gamestate.g.current_player].name, tug_gamestate.g.players[tug_gamestate.g.current_player].name .. "'s turn.")
 end
 
+local make_move = 0
+minetest.register_globalstep(function(dtime)
+    if make_move == 0 then
+        return
+    end
+    make_move = make_move - 1
+    if make_move == 1 then
+        make_move = 0
+        tug_gamestate.g.current_board = tug_chess_engine.engine_next_board(tug_gamestate.g.current_board, tug_gamestate.g.players[2].color)
+        switch_player()
+        update_game_board()
+    end
+end)
+
 minetest.register_chatcommand("start", {
     params = "[player2]",
     description = "default is singleplayer against engine, use player2 to play against an other player",
@@ -292,11 +307,9 @@ minetest.register_chatcommand("start", {
         update_game_board()
 
         if (tug_gamestate.g.players[tug_gamestate.g.current_player].name == "") then
-            tug_gamestate.g.current_board = tug_chess_engine.engine_next_board(tug_gamestate.g.current_board, tug_gamestate.g.players[2].color)
-            switch_player()
+            make_move = tug_core.engine_moves_true
         end
 
-        update_game_board()
         save_metadata()
     end,
 })
@@ -340,8 +353,7 @@ minetest.register_on_punchnode(function(pos, node, puncher, pointed_thing)
                         switch_player()
                         update_game_board()
                         if tug_gamestate.g.players[tug_gamestate.g.current_player].name == "" then
-                            tug_gamestate.g.current_board = tug_chess_engine.engine_next_board(tug_gamestate.g.current_board, tug_gamestate.g.players[2].color)
-                            switch_player()
+                            make_move = tug_core.engine_moves_true
                         end
                         save_metadata()
                     end
