@@ -87,6 +87,7 @@ minetest.register_node(prefix .. "light", {
 minetest.register_node(prefix .. "barrier", {
     drawtype = "airlike",
     paramtype = "light",
+    pointable = false,
     sunlight_propagates = true,
 })
 
@@ -136,6 +137,18 @@ minetest.register_on_generated(function(minp, maxp, blockseed)
             minetest.set_node({x = x, y = ground_level, z = z}, {name = prefix .. node, param2 = param2})
         end
     end
+
+    local cube_radius = 15
+    for x = -cube_radius, cube_radius do
+        for y = -cube_radius, cube_radius do
+            for z = -cube_radius, cube_radius do
+                if (math.abs(x) == cube_radius or math.abs(y) == cube_radius or math.abs(z) == cube_radius) and ground_level + y > ground_level then
+                    minetest.set_node({x = x + 5, y = ground_level + y, z = z + 5}, {name = prefix .. "barrier"})
+                end
+            end
+        end
+    end
+
 end)
 
 for _, piece in pairs(entity_lookup) do
@@ -194,6 +207,8 @@ minetest.register_on_joinplayer(function(player)
 		"size[10, 10]" ..
 		"label[0.5,0.5; ]"
 	)
+
+    player:set_physics_override({speed = 1.5})
 
     local clr1 = colors.sky
 	player:set_sky({
