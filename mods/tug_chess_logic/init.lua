@@ -93,7 +93,7 @@ function tug_chess_logic.get_next_boards(board, id)
 
             if ((string.upper(piece.name) == piece.name) and (id == 1)) or ((string.lower(piece.name) == piece.name) and (id == 2)) then
 				piece_count = piece_count + 1
-                local moves = cases[string.lower(piece.name)](deepcopy(board), z, x, string.upper(piece.name) == piece.name, false)
+                local moves = cases[string.lower(piece.name)](deepcopy(board), z, x, string.upper(piece.name) == piece.name, true)
                 if moves then
                     for _, move in pairs(moves) do
                         table.insert(boards, tug_chess_logic.apply_move({z = z, x = x}, move, deepcopy(board)))
