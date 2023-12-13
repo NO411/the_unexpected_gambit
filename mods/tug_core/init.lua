@@ -273,6 +273,13 @@ local function switch_player()
     minetest.chat_send_player(tug_gamestate.g.players[3 - tug_gamestate.g.current_player].name, tug_gamestate.g.players[tug_gamestate.g.current_player].name .. "'s turn.")
 end
 
+local function made_move()
+    switch_player()
+    save_metadata()
+    update_game_board()
+    -- play sound
+end
+
 local make_move = 0
 minetest.register_globalstep(function(dtime)
     if make_move == 0 then
@@ -283,9 +290,7 @@ minetest.register_globalstep(function(dtime)
         make_move = 0
         tug_gamestate.g.current_board = tug_chess_engine.engine_next_board(tug_gamestate.g.current_board, tug_gamestate.g.players[2].color)
         
-        switch_player()
-        save_metadata()
-        update_game_board()
+        made_move()
     end
 end)
 
@@ -320,7 +325,6 @@ minetest.register_chatcommand("start", {
         minetest.chat_send_player(tug_gamestate.g.players[3 - tug_gamestate.g.current_player].name, tug_gamestate.g.players[tug_gamestate.g.current_player].name .. "'s turn.")
 
         tug_gamestate.g.current_board = tug_chess_logic.get_default_board()
-
         update_game_board()
 
         if (tug_gamestate.g.players[tug_gamestate.g.current_player].name == "") then
@@ -368,9 +372,7 @@ minetest.register_on_punchnode(function(pos, node, puncher, pointed_thing)
                     if selected_move then
                         tug_gamestate.g.current_board = tug_chess_logic.apply_move({x = tug_gamestate.g.current_selected.x + 1, z = tug_gamestate.g.current_selected.z + 1}, selected_move, tug_gamestate.g.current_board)
                         
-                        switch_player()
-                        save_metadata()
-                        update_game_board()
+                        made_move()
 
                         if tug_gamestate.g.players[tug_gamestate.g.current_player].name == "" then
                             make_move = tug_core.engine_moves_true

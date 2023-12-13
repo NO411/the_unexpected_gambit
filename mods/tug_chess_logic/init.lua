@@ -252,11 +252,11 @@ local function filter_legal_moves(board, from, to_moves, white, check_for_check)
     end
 
     if not check_for_check then
+    -- ^^^^ stop recursion
         return color_filtered
     end
 
     local check_filtered = {}
-    -- ^^^^ stop recursion
     for _, coord in pairs(color_filtered) do
         if not in_check_when_move(board, from, coord, white) then
             table.insert(check_filtered, coord)
