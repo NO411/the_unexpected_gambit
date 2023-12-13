@@ -333,9 +333,9 @@ minetest.register_chatcommand("start", {
 
 minetest.register_on_punchnode(function(pos, node, puncher, pointed_thing)
     if node.name == prefix .. "light" or node.name == prefix .. "dark" then
-        x = pos.x
-        y = pos.y
-        z = pos.z
+        local x = pos.x
+        local y = pos.y
+        local z = pos.z
         
         -- is current player the puncher
         if tug_gamestate.g.current_board ~= nil and puncher:get_player_name() == tug_gamestate.g.players[tug_gamestate.g.current_player].name then

@@ -214,11 +214,11 @@ local function in_check(board, white)
         for x = 1, 8 do
             local piece_coord = {z = z, x = x}
             local piece = get_piece(board, piece_coord)
-            if not is_same_color(board, piece_coord, white) and piece.name ~= "" then
+            if (not is_same_color(board, piece_coord, white)) and piece.name ~= "" then
                 -- recursive
                 -- check wether the piece could capture the king
-                -- therefore calculate all possible moves without caring for oponents checks
-                local moves = cases[string.lower(piece.name)](board, piece_coord.z, piece_coord.x, not white, true)
+                -- therefore calculate all possible moves without caring for oponents checks (stop recursion)
+                local moves = cases[string.lower(piece.name)](board, piece_coord.z, piece_coord.x, not white, false)
                 for _, move in pairs(moves) do
                     if move.z == king_coord.z and move.x == king_coord.x then
                         return true
@@ -233,10 +233,7 @@ end
 
 local function in_check_when_move(board, from, to, white)
     -- king castle already filtered in cases["k"]
-    if in_check(tug_chess_logic.apply_move(from, to, board), white) then
-        return true
-    end
-    return false
+    return in_check(tug_chess_logic.apply_move(from, to, board), white)
 end
 
 local function filter_legal_moves(board, from, to_moves, white, check_for_check)
@@ -254,13 +251,15 @@ local function filter_legal_moves(board, from, to_moves, white, check_for_check)
         end
     end
 
-    local check_filtered = {}
     if not check_for_check then
-        -- ^^^^ stop recursion
-        for _, coord in pairs(color_filtered) do
-            if not in_check_when_move(board, from, coord, white) then
-                table.insert(check_filtered, coord)
-            end
+        return color_filtered
+    end
+
+    local check_filtered = {}
+    -- ^^^^ stop recursion
+    for _, coord in pairs(color_filtered) do
+        if not in_check_when_move(board, from, coord, white) then
+            table.insert(check_filtered, coord)
         end
     end
 
@@ -478,7 +477,7 @@ cases = {
 function tug_chess_logic.get_moves(z, x)
     -- the moves are absolute
     local name = tug_gamestate.g.current_board[z][x].name
-    return cases[string.lower(name)](deepcopy(tug_gamestate.g.current_board), z, x, string.upper(name) == name, false)
+    return cases[string.lower(name)](deepcopy(tug_gamestate.g.current_board), z, x, string.upper(name) == name, true)
     -- the function which apllies this to a board needs to move the rook if the king castled, only king move returned!
 end
 
