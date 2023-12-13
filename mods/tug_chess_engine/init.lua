@@ -2,22 +2,17 @@ local minetest, math, vector = minetest, math, vector
 local modname = minetest.get_current_modname()
 
 tug_chess_engine = {
-    engine_1 = {
-        win_scale = 10000000,
-        material_scale = 100000,
-        position_scale = 1000,
-    }
 }
 
-local win_score = 1.00
+local win_score = 1000
 
 local piece_values_lookup = {
-    ["p"] = 0.10,
-    ["n"] = 0.30,
-    ["b"] = 0.30,
-    ["r"] = 0.50,
-    ["q"] = 0.90,
-    ["k"] = 100.00,
+    ["p"] = 1,
+    ["n"] = 3,
+    ["b"] = 3,
+    ["r"] = 5,
+    ["q"] = 9,
+    ["k"] = 0,
 }
 
 local piece_square_tables = {
@@ -83,48 +78,34 @@ local piece_square_tables = {
     }
 }
 
-function tug_chess_engine.heuristic(board, id, engine)
-    local score = 0
+function tug_chess_engine.heuristic(board)
+    local white_score = 0
     
     -- WIN
     local winning_player = tug_chess_logic.has_won(board)
-    if winning_player == id then score = score + win_score * engine.win_scale
-    elseif winning_player == -id + 3 then score = score - win_score * engine.win_scale end
+    if winning_player == 1 then white_score = white_score + win_score
+    elseif winning_player == 2 then white_score = white_score - win_score end
 
+	for l, line in pairs(board) do
+		for r, row in pairs(line) do
+			if row.name ~= "" then
+				local lower_row = string.lower(row.name)
+				if row.name == string.upper(row.name) then
+					white_score = white_score + piece_values_lookup[lower_row]
+					white_score = white_score + piece_square_tables[lower_row][9 - l][9 - r]
+				else
+					white_score = white_score - piece_values_lookup[lower_row]
+					white_score = white_score - piece_square_tables[lower_row][l][r]
+				end
+			end
+		end
+	end
 
-    -- MATERIAL AND POSITION
-    for l, line in pairs(board) do
-        for r, row in pairs(line) do
-            if row.name ~= "" then
-                if row.name == string.upper(row.name) then
-                    if id == 1 then
-                        score = score + piece_values_lookup[string.lower(row.name)] * engine.material_scale
-                        score = score + piece_square_tables[string.lower(row.name)][9 - l][9 - r] * engine.position_scale
-                    else
-                        score = score - piece_values_lookup[string.lower(row.name)] * engine.material_scale
-                        score = score - piece_square_tables[string.lower(row.name)][9 - l][9 - r] * engine.position_scale
-                    end
-                else
-                    if id == 2 then
-                        score = score + piece_values_lookup[string.lower(row.name)] * engine.material_scale
-                        score = score + piece_square_tables[string.lower(row.name)][l][r] * engine.position_scale
-                    else
-                        score = score - piece_values_lookup[string.lower(row.name)] * engine.material_scale
-                        score = score - piece_square_tables[string.lower(row.name)][l][r] * engine.position_scale
-                    end
-                end
-            end
-        end
-    end
-
-    -- TODO: Implement https://en.wikipedia.org/wiki/Chess_piece_relative_value
-    -- TODO: Implement https://www.chessprogramming.org/Simplified_Evaluation_Function
-
-    return score
+	return white_score
 end
 
 function tug_chess_engine.minimax(board, depth, alpha, beta, max_p, id)
-    if depth == 0 or tug_chess_logic.has_won(board) ~= 0 then return tug_chess_engine.heuristic(board, id, tug_chess_engine.engine_1) end
+    if depth == 0 or tug_chess_logic.has_won(board) ~= 0 then return (3 - 2 * id) * tug_chess_engine.heuristic(board) end
     
     local new_boards = nil
     if max_p then
@@ -136,14 +117,14 @@ function tug_chess_engine.minimax(board, depth, alpha, beta, max_p, id)
     local score = 0
     if max_p then
         score = -math.huge
-        for _, b in ipairs(new_boards) do
+        for _, b in pairs(new_boards) do
             score = math.max(score, tug_chess_engine.minimax(b, depth - 1, alpha, beta, false, id))
             if score > beta then break end
             alpha = math.max(alpha, score)
         end
     else
         score = math.huge
-        for _, b in ipairs(new_boards) do
+        for _, b in pairs(new_boards) do
             score = math.min(score, tug_chess_engine.minimax(b, depth - 1, alpha, beta, true, id))
             if score < alpha then break end
             beta = math.min(beta, score)
@@ -156,24 +137,15 @@ end
 function tug_chess_engine.engine_next_board(board, id)
     local new_boards = tug_chess_logic.get_next_boards(board, id)
     local max_score = -math.huge
-    local eval_boards = {}
+	local best_board = nil
 
-    for _, b in ipairs(new_boards) do
+    for _, b in pairs(new_boards) do
         local score = tug_chess_engine.minimax(b, 3, -math.huge, math.huge, false, id)
-        table.insert(eval_boards, {b, score})
         if max_score < score then
             max_score = score
+			best_board = b;
         end
     end
 
-    local best_boards = {}
-    for _, b in ipairs(eval_boards) do
-        if b[2] == max_score then
-            table.insert(best_boards, b[1])
-        end
-    end
-
-    local best_board = best_boards[math.random(#best_boards)]
-    
     return best_board
 end
