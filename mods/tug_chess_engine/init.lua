@@ -1,8 +1,7 @@
 local minetest, math, vector = minetest, math, vector
 local modname = minetest.get_current_modname()
 
-tug_chess_engine = {
-}
+tug_chess_engine = {}
 
 local win_score = 1000
 
@@ -81,7 +80,6 @@ local piece_square_tables = {
 function tug_chess_engine.heuristic(board)
     local white_score = 0
     
-    -- WIN
     local winning_player = tug_chess_logic.has_won(board)
     if winning_player == 1 then white_score = white_score + win_score
     elseif winning_player == 2 then white_score = white_score - win_score end
@@ -108,11 +106,8 @@ function tug_chess_engine.minimax(board, depth, alpha, beta, max_p, id)
     if depth == 0 or tug_chess_logic.has_won(board) ~= 0 then return (3 - 2 * id) * tug_chess_engine.heuristic(board) end
     
     local new_boards = nil
-    if max_p then
-        new_boards = tug_chess_logic.get_next_boards(board, id)
-    else
-        new_boards = tug_chess_logic.get_next_boards(board, -id + 3)
-    end
+    if max_p then new_boards = tug_chess_logic.get_next_boards(board, id)
+    else new_boards = tug_chess_logic.get_next_boards(board, -id + 3) end
 
     local score = 0
     if max_p then
@@ -140,10 +135,10 @@ function tug_chess_engine.engine_next_board(board, id)
 	local best_board = nil
 
     for _, b in pairs(new_boards) do
-        local score = tug_chess_engine.minimax(b, 3, -math.huge, math.huge, false, id)
+        local score = tug_chess_engine.minimax(b, 2, -math.huge, math.huge, false, id)
         if max_score < score then
             max_score = score
-			best_board = b;
+			best_board = b
         end
     end
 
