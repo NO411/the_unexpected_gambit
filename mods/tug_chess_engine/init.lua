@@ -102,6 +102,23 @@ function tug_chess_engine.heuristic(board)
 	return white_score
 end
 
+function tug_chess_engine.negamax(board, depth, alpha, beta, color)
+    if depth == 0 or tug_chess_logic.has_won(board) ~= 0 then return (3 - 2 * color) * tug_chess_engine.heuristic(board) end
+
+    local new_boards = tug_chess_logic.get_next_boards(board, color)
+
+    local score = -math.huge
+    for _, b in pairs(new_boards) do
+        score = math.max(score, -tug_chess_engine.negamax(b, depth - 1, -beta, -alpha, -color + 3))
+        alpha = math.max(alpha, score)
+        if alpha >= beta then
+            break
+        end
+    end
+
+    return score
+end
+
 function tug_chess_engine.minimax(board, depth, alpha, beta, max_p, id)
     if depth == 0 or tug_chess_logic.has_won(board) ~= 0 then return (3 - 2 * id) * tug_chess_engine.heuristic(board) end
     
@@ -135,7 +152,8 @@ function tug_chess_engine.engine_next_board(board, id)
 	local best_board = nil
 
     for _, b in pairs(new_boards) do
-        local score = tug_chess_engine.minimax(b, 2, -math.huge, math.huge, false, id)
+        --local score = tug_chess_engine.minimax(b, 2, -math.huge, math.huge, false, id)
+        local score = -tug_chess_engine.negamax(b, 2, -math.huge, math.huge, -id + 3)
         if max_score < score then
             max_score = score
 			best_board = b
