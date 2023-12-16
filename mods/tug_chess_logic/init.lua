@@ -180,6 +180,11 @@ function tug_chess_logic.apply_move(from, to, input_board)
         end
     end
 
+    -- pawn promotion
+    if string.lower(name) == "p" and (to.z == 1 or to.z == 8) then
+        board[to.z][to.x].name = string.upper(name) == name and "Q" or "q"
+    end
+
     -- apply rook move on castling
     if to.castling then
         if to.x == 7 then
