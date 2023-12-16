@@ -59,13 +59,6 @@ function tug_chess_logic.get_default_board()
     return board
 end
 
--- TODOS
-
-function tug_chess_logic.has_won(board)
-    -- RETURNS 0 - No winner, 1 - White won, 2 - Black won
-    return 0
-end
-
 function tug_chess_logic.get_next_boards(board, id)
     -- RETURNS All next boards for a current player
     -- id = 1 white
@@ -346,83 +339,38 @@ cases = {
     end,
     ["b"] = function(board, z, x, white, check_for_check)
         local moves = {}
-        for no = 1, 7 do
-            local move = {z = z + no, x = x + no}
-            if is_empty(board, move) then
-                table.insert(moves, move)
-            else
-                -- capture, cant go further
-                table.insert(moves, move)
-                break
+        local directions = {{1, 1}, {-1, 1}, {-1, -1}, {1, -1}}
+        
+        for _, dir in ipairs(directions) do
+            for i = 1, 7 do
+                local move = {z = z + i * dir[1], x = x + i * dir[2]}
+                if is_empty(board, move) then
+                    table.insert(moves, move)
+                else
+                    table.insert(moves, move)
+                    break
+                end
             end
         end
-        for so = 1, 7 do
-            local move = {z = z - so, x = x + so}
-            if is_empty(board, move) then
-                table.insert(moves, move)
-            else
-                table.insert(moves, move)
-                break
-            end
-        end
-        for sw = 1, 7 do
-            local move = {z = z - sw, x = x - sw}
-            if is_empty(board, move) then
-                table.insert(moves, move)
-            else
-                table.insert(moves, move)
-                break
-            end
-        end
-        for nw = 1, 7 do
-            local move = {z = z + nw, x = x - nw}
-            if is_empty(board, move) then
-                table.insert(moves, move)
-            else
-                table.insert(moves, move)
-                break
-            end
-        end
+        
         return filter_legal_moves(board, {z = z, x = x}, moves, white, check_for_check)
     end,
     ["r"] = function(board, z, x, white, check_for_check)
         local moves = {}
-        for zp = 1, 7 do
-            local move = {z = z + zp, x = x, moved = true}
-            if is_empty(board, move) then
-                table.insert(moves, move)
-            else
-                table.insert(moves, move)
-                break
+        local directions = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}}
+        
+        for _, dir in ipairs(directions) do
+            for i = 1, 7 do
+                local move = {z = z + i * dir[1], x = x + i * dir[2], moved = true}
+                if is_empty(board, move) then
+                    table.insert(moves, move)
+                else
+                    table.insert(moves, move)
+                    break
+                end
             end
         end
-        for zn = 1, 7 do
-            local move = {z = z - zn, x = x, moved = true}
-            if is_empty(board, move) then
-                table.insert(moves, move)
-            else
-                table.insert(moves, move)
-                break
-            end
-        end
-        for xp = 1, 7 do
-            local move = {z = z, x = x + xp, moved = true}
-            if is_empty(board, move) then
-                table.insert(moves, move)
-            else
-                table.insert(moves, move)
-                break
-            end
-        end
-        for xn = 1, 7 do
-            local move = {z = z, x = x - xn, moved = true}
-            if is_empty(board, move) then
-                table.insert(moves, move)
-            else
-                table.insert(moves, move)
-                break
-            end
-        end
+        
         return filter_legal_moves(board, {z = z, x = x}, moves, white, check_for_check)
     end,
     ["q"] = function(board, z, x, white, check_for_check)
@@ -484,6 +432,13 @@ function tug_chess_logic.get_moves(z, x)
     local name = tug_gamestate.g.current_board[z][x].name
     return cases[string.lower(name)](deepcopy(tug_gamestate.g.current_board), z, x, string.upper(name) == name, true)
     -- the function which apllies this to a board needs to move the rook if the king castled, only king move returned!
+end
+
+function tug_chess_logic.has_won(board, current_id)
+    -- current_id: 1 white, 2 black
+    -- RETURNS 0 - No winner, 1 - White won, 2 - Black won
+
+    return 0
 end
 
 -- UTILS
