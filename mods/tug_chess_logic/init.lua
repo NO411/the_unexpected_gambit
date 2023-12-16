@@ -407,7 +407,8 @@ cases = {
             if string.lower(get_name(board, rook)) == "r" and (not moved(board, rook)) and
             is_empty(board, {z = z, x = 7}) and
             is_empty(board, {z = z, x = 6}) and
-            not in_check_when_move(board, {z = z, x = x}, {z = z, x = 6}, white) then
+            not in_check_when_move(board, {z = z, x = x}, {z = z, x = 6}, white) and
+            not in_check(board, white) then
                 table.insert(moves, {z = z, x = 7, castling = true, moved = true})
             end
             -- queen side
@@ -416,7 +417,8 @@ cases = {
             is_empty(board, {z = z, x = 2}) and
             is_empty(board, {z = z, x = 3}) and
             is_empty(board, {z = z, x = 4}) and
-            not in_check_when_move(board, {z = z, x = x}, {z = z, x = 4}, white) then
+            not in_check_when_move(board, {z = z, x = x}, {z = z, x = 4}, white) and
+            not in_check(board, white) then
                 table.insert(moves, {z = z, x = 3, castling = true, moved = true})
             end
         end
