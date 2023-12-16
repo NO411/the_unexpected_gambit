@@ -195,13 +195,17 @@ end
 
 local function in_check(board, white)
     local king_coord = nil
-
+    local _break = false
     -- set king_coord
     for z = 1, 8 do
+        if _break then
+            break
+        end
         for x = 1, 8 do
             local piece = board[z][x]
             king_coord = {z = z, x = x}
             if string.lower(piece.name) == "k" and is_same_color(board, king_coord, white) then
+                _break = true
                 break
             end
         end
@@ -215,7 +219,7 @@ local function in_check(board, white)
                 -- recursive
                 -- check wether the piece could capture the king
                 -- therefore calculate all possible moves without caring for oponents checks (stop recursion)
-                local moves = cases[string.lower(piece.name)](board, piece_coord.z, piece_coord.x, not white, false)
+                local moves = cases[string.lower(piece.name)](deepcopy(board), piece_coord.z, piece_coord.x, not white, false)
                 for _, move in pairs(moves) do
                     if move.z == king_coord.z and move.x == king_coord.x then
                         return true

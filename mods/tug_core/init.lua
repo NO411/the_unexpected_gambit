@@ -191,15 +191,17 @@ minetest.register_entity(prefix .. "selected", {
     end,
 })
 
-local make_move = 0
-minetest.register_on_joinplayer(function(player)
+minetest.register_on_newplayer(function(player)
     player:set_pos(vector.new(0, ground_level + 1, 0))
-
-    local name = player:get_player_name()
     local basic_privs = minetest.get_player_privs(name)
     basic_privs.fly = true
     minetest.set_player_privs(name, basic_privs)
+end)
 
+local make_move = 0
+minetest.register_on_joinplayer(function(player)
+    local name = player:get_player_name()
+    
     player:hud_set_hotbar_itemcount(1)
     player:get_inventory():set_size("main", 1)
     set_player_hand(player)
