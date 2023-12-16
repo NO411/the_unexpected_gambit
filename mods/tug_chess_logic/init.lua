@@ -344,10 +344,8 @@ cases = {
         for _, dir in ipairs(directions) do
             for i = 1, 7 do
                 local move = {z = z + i * dir[1], x = x + i * dir[2]}
-                if is_empty(board, move) then
-                    table.insert(moves, move)
-                else
-                    table.insert(moves, move)
+                table.insert(moves, move)
+                if not is_empty(board, move) then
                     break
                 end
             end
@@ -362,10 +360,8 @@ cases = {
         for _, dir in ipairs(directions) do
             for i = 1, 7 do
                 local move = {z = z + i * dir[1], x = x + i * dir[2], moved = true}
-                if is_empty(board, move) then
-                    table.insert(moves, move)
-                else
-                    table.insert(moves, move)
+                table.insert(moves, move)
+                if not is_empty(board, move) then
                     break
                 end
             end
