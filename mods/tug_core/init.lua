@@ -104,6 +104,49 @@ minetest.register_craftitem(prefix .. "hand", {
     end,
 })
 
+local function add_color_hud(player)
+    local name = player:get_player_name()
+
+    local top_color = "white"
+    local bottom_color = "black"
+
+    if tug_gamestate.g.players[name].color == 1 then
+        _temp = top_color
+        top_color = bottom_color
+        bottom_color = _temp
+    end
+
+    player:hud_add({
+		hud_elem_type = "image",
+		position = {x = 1, y = 0},
+		alignment = {x = -1, y = 1},
+		scale = {x = 0.25, y = 0.25},
+		offset = {x = -50, y = 50},
+		text = "tug_" .. top_color .. "_circle.png",
+		z_index = 0,
+	})
+
+    player:hud_add({
+		hud_elem_type = "image",
+		position = {x = 1, y = 1},
+		alignment = {x = -1, y = -1},
+		scale = {x = 0.25, y = 0.25},
+		offset = {x = -50, y = -50},
+		text = "tug_" .. bottom_color .. "_circle.png",
+		z_index = 0,
+	})
+
+    player:hud_add({
+		hud_elem_type = "image",
+		position = {x = 1, y = 0},
+		alignment = {x = -1, y = 1},
+		scale = {x = 0.25, y = 0.25},
+		offset = {x = -50, y = 50},
+		text = "tug_marking_circle.png",
+		z_index = 0,
+	})
+end
+
 minetest.register_on_generated(function(minp, maxp, blockseed)
     for x = -1, 8 do
         for z = -1, 8 do
@@ -253,6 +296,7 @@ minetest.register_on_joinplayer(function(player)
                     make_move = tug_core.engine_moves_true
                 end
             end
+            add_color_hud(player)
             found = true
         end
     end
@@ -336,6 +380,11 @@ minetest.register_chatcommand("start", {
 
         if tug_gamestate.g.players[tug_gamestate.g.current_player].name == "" then
             make_move = tug_core.engine_moves_true
+        end
+
+        add_color_hud(minetest.get_player_by_name(name))
+        if player2 ~= "" then
+            add_color_hud(minetest.get_player_by_name(player2))
         end
 
         save_metadata()
