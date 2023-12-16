@@ -191,6 +191,7 @@ minetest.register_entity(prefix .. "selected", {
     end,
 })
 
+local make_move = 0
 minetest.register_on_joinplayer(function(player)
     player:set_pos(vector.new(0, ground_level + 1, 0))
 
@@ -239,14 +240,17 @@ minetest.register_on_joinplayer(function(player)
 
     local found = false
     for i, p in ipairs(tug_gamestate.g.players) do
-        if p == name then
+        if p.name == name then
             if i == tug_gamestate.g.current_player then
-                minetest.chat_send_player(p, "Your turn.")
+                minetest.chat_send_player(p.name, "Your turn.")
             else
-                minetest.chat_send_player(p, tug_gamestate.g.players[tug_gamestate.g.current_player].name .. "'s turn.")
+                minetest.chat_send_player(p.name, tug_gamestate.g.players[tug_gamestate.g.current_player].name .. "'s turn.")
+                -- engine moves
+                if tug_gamestate.g.players[tug_gamestate.g.current_player].name == "" then
+                    make_move = tug_core.engine_moves_true
+                end
             end
             found = true
-            
         end
     end
 
@@ -280,7 +284,6 @@ local function made_move()
     -- play sound
 end
 
-local make_move = 0
 minetest.register_globalstep(function(dtime)
     if make_move == 0 then
         return
@@ -327,7 +330,7 @@ minetest.register_chatcommand("start", {
         tug_gamestate.g.current_board = tug_chess_logic.get_default_board()
         update_game_board()
 
-        if (tug_gamestate.g.players[tug_gamestate.g.current_player].name == "") then
+        if tug_gamestate.g.players[tug_gamestate.g.current_player].name == "" then
             make_move = tug_core.engine_moves_true
         end
 

@@ -143,9 +143,8 @@ function tug_chess_logic.apply_move(from, to, input_board)
     board[from.z][from.x] = {name = ""}
 
     local name = get_name(board, to)
-    local moved = to.moved
 
-    get_piece(board, to).moved = moved
+    get_piece(board, to).moved = to.moved
 
     local is_white = (string.upper(name) == name)
     -- set moved for opponents pawns to false
