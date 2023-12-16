@@ -315,6 +315,7 @@ minetest.register_chatcommand("start", {
             tug_gamestate.g.players[2] = {name = "", color = 2}
         end
 
+        math.randomseed(os.time())
         tug_gamestate.g.current_player = 1
         if math.random(0, 1) == 1 then
             tug_gamestate.g.players[1].color = 2
