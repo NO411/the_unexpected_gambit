@@ -192,6 +192,7 @@ minetest.register_entity(prefix .. "selected", {
 })
 
 minetest.register_on_newplayer(function(player)
+    local name = player:get_player_name()
     player:set_pos(vector.new(0, ground_level + 1, 0))
     local basic_privs = minetest.get_player_privs(name)
     basic_privs.fly = true
