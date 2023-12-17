@@ -17,6 +17,7 @@ end
 
 tug_core = {
     engine_moves_true = 3,
+    hud_refs = {},
 }
 
 -- metadata
@@ -104,47 +105,61 @@ minetest.register_craftitem(prefix .. "hand", {
     end,
 })
 
+local top_circle_def = {
+    hud_elem_type = "image",
+    position = {x = 1, y = 0},
+    alignment = {x = -1, y = 1},
+    scale = {x = 0.25, y = 0.25},
+    offset = {x = -50, y = 50},
+    z_index = 0,
+}
+
+local bottom_circle_def = {
+    hud_elem_type = "image",
+    position = {x = 1, y = 1},
+    alignment = {x = -1, y = -1},
+    scale = {x = 0.25, y = 0.25},
+    offset = {x = -50, y = -50},
+    z_index = 0,
+}
+
+local function get_player_id(player)
+    for i, _player in pairs(tug_gamestate.g.players) do
+        if _player.name == player:get_player_name() then
+            return i
+        end
+    end
+end
+
 local function add_color_hud(player)
     local name = player:get_player_name()
+    tug_core.hud_refs.name = {}
 
     local top_color = "white"
     local bottom_color = "black"
 
-    if tug_gamestate.g.players[name].color == 1 then
+    if tug_gamestate.g.players[get_player_id(player)].color == 1 then
         _temp = top_color
         top_color = bottom_color
         bottom_color = _temp
     end
 
-    player:hud_add({
-		hud_elem_type = "image",
-		position = {x = 1, y = 0},
-		alignment = {x = -1, y = 1},
-		scale = {x = 0.25, y = 0.25},
-		offset = {x = -50, y = 50},
-		text = "tug_" .. top_color .. "_circle.png",
-		z_index = 0,
-	})
+    local top_circle = top_circle_def
+    top_circle.text = "tug_" .. top_color .. "_circle.png"
+    tug_core.hud_refs.name.top_circle = player:hud_add(top_circle)
 
-    player:hud_add({
-		hud_elem_type = "image",
-		position = {x = 1, y = 1},
-		alignment = {x = -1, y = -1},
-		scale = {x = 0.25, y = 0.25},
-		offset = {x = -50, y = -50},
-		text = "tug_" .. bottom_color .. "_circle.png",
-		z_index = 0,
-	})
+    local bottom_circle = bottom_circle_def
+    bottom_circle.text = "tug_" .. bottom_color .. "_circle.png"
+    tug_core.hud_refs.name.bottom_circle = player:hud_add(bottom_circle)
 
-    player:hud_add({
-		hud_elem_type = "image",
-		position = {x = 1, y = 0},
-		alignment = {x = -1, y = 1},
-		scale = {x = 0.25, y = 0.25},
-		offset = {x = -50, y = 50},
-		text = "tug_marking_circle.png",
-		z_index = 0,
-	})
+    local marking_circle = top_circle_def
+    if tug_gamestate.g.players[tug_gamestate.g.current_player].name == name then
+        marking_circle = bottom_circle_def
+    end
+    marking_circle.text = "tug_marking_circle.png"
+    marking_circle.z_index = 1
+
+    tug_core.hud_refs.name.marking_circle = player:hud_add(marking_circle)
 end
 
 minetest.register_on_generated(function(minp, maxp, blockseed)
