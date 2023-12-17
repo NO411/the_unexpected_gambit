@@ -6,12 +6,12 @@ tug_chess_engine = {}
 local win_score = 10000
 
 local piece_values_lookup = {
-    ["p"] = 100,
-    ["n"] = 320,
-    ["b"] = 330,
-    ["r"] = 500,
-    ["q"] = 900,
-    ["k"] = 2000,
+    ["p"] = 1000,
+    ["n"] = 3200,
+    ["b"] = 3300,
+    ["r"] = 5000,
+    ["q"] = 9000,
+    ["k"] = 20000,
 }
 
 local piece_square_tables = {
@@ -102,8 +102,6 @@ function tug_chess_engine.heuristic(board)
 	return white_score
 end
 
---local transposition_table = {}
-
 function tug_chess_engine.hash_board(board)
 	local hash = ""
 	local free_count = 0
@@ -126,44 +124,39 @@ function tug_chess_engine.hash_board(board)
 	return hash
 end
 
-function tug_chess_engine.negamax(board, depth, alpha, beta, color)
-    if depth == 0 or tug_chess_logic.has_won(board) ~= 0 then return (3 - 2 * color) * tug_chess_engine.heuristic(board) end
+function tug_chess_engine.minimax(board, depth, max_p, color)
+	if depth == 0 then return (3 - 2 * color) * tug_chess_engine.heuristic(board) end
 
-    local new_boards = tug_chess_logic.get_next_boards(board, color)
-
-    local score = -math.huge
-    for _, b in pairs(new_boards) do
-		--local board_hash = tug_chess_engine.hash_board(b)
-		--if transposition_table[board_hash] ~= nil then
-		--	score = transposition_table[board_hash]
-		--else
-		--	score = math.max(score, -tug_chess_engine.negamax(b, depth - 1, -beta, -alpha, -color + 3))
-		--	transposition_table[board_hash] = score
-		--end
-		score = math.max(score, -tug_chess_engine.negamax(b, depth - 1, -beta, -alpha, -color + 3))
-		alpha = math.max(alpha, score)
-        if alpha >= beta then
-            break
-        end
-    end
-
-    return score
+	local score = 0
+	local new_boards = tug_chess_logic.get_next_boards(board, color)
+	if max_p then
+		score = -math.huge
+		for _, b in pairs(new_boards) do
+			score = math.max(score, tug_chess_engine.minimax(b, depth - 1, false, -color + 3))
+		end
+		return score
+	else
+		score = math.huge
+		for _, b in pairs(new_boards) do
+			score = math.min(score, tug_chess_engine.minimax(b, depth - 1, true, -color + 3))
+		end
+		return score
+	end
 end
 
 function tug_chess_engine.engine_next_board(board, id)
-    local new_boards = tug_chess_logic.get_next_boards(board, id)
-    local max_score = -math.huge
+	local new_boards = tug_chess_logic.get_next_boards(board, id)
+	local max_score = -math.huge
 	local best_board = nil
 
-	minetest.debug(tug_chess_engine.hash_board(board))
-
-    for _, b in pairs(new_boards) do
-        local score = -tug_chess_engine.negamax(b, 1, -math.huge, math.huge, -id + 3)
-        if max_score < score then
-            max_score = score
+	local score = 0
+	for _, b in pairs(new_boards) do
+		score = tug_chess_engine.minimax(b, 1, false, -id + 3)
+		if score > max_score then
+			max_score = score
 			best_board = b
-        end
-    end
+		end
+	end
 
-    return best_board
+	return best_board
 end
