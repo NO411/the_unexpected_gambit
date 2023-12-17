@@ -80,9 +80,9 @@ local piece_square_tables = {
 function tug_chess_engine.heuristic(board)
     local white_score = 0
     
-    local winning_player = tug_chess_logic.has_won(board)
-    if winning_player == 1 then white_score = white_score + win_score
-    elseif winning_player == 2 then white_score = white_score - win_score end
+    --local winning_player = tug_chess_logic.has_won(board)
+    --if winning_player == 1 then white_score = white_score + win_score
+    --elseif winning_player == 2 then white_score = white_score - win_score end
 
 	for l, line in pairs(board) do
 		for r, row in pairs(line) do
@@ -102,7 +102,7 @@ function tug_chess_engine.heuristic(board)
 	return white_score
 end
 
-local transposition_table = {}
+--local transposition_table = {}
 
 function tug_chess_engine.hash_board(board)
 	local hash = ""
@@ -133,13 +133,14 @@ function tug_chess_engine.negamax(board, depth, alpha, beta, color)
 
     local score = -math.huge
     for _, b in pairs(new_boards) do
-		local board_hash = tug_chess_engine.hash_board(b)
-		if transposition_table[board_hash] ~= nil then
-			score = transposition_table[board_hash]
-		else
-			score = math.max(score, -tug_chess_engine.negamax(b, depth - 1, -beta, -alpha, -color + 3))
-			transposition_table[board_hash] = score
-		end
+		--local board_hash = tug_chess_engine.hash_board(b)
+		--if transposition_table[board_hash] ~= nil then
+		--	score = transposition_table[board_hash]
+		--else
+		--	score = math.max(score, -tug_chess_engine.negamax(b, depth - 1, -beta, -alpha, -color + 3))
+		--	transposition_table[board_hash] = score
+		--end
+		score = math.max(score, -tug_chess_engine.negamax(b, depth - 1, -beta, -alpha, -color + 3))
 		alpha = math.max(alpha, score)
         if alpha >= beta then
             break
@@ -157,7 +158,7 @@ function tug_chess_engine.engine_next_board(board, id)
 	minetest.debug(tug_chess_engine.hash_board(board))
 
     for _, b in pairs(new_boards) do
-        local score = -tug_chess_engine.negamax(b, 3, -math.huge, math.huge, -id + 3)
+        local score = -tug_chess_engine.negamax(b, 1, -math.huge, math.huge, -id + 3)
         if max_score < score then
             max_score = score
 			best_board = b

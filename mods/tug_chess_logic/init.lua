@@ -438,12 +438,12 @@ end
 function tug_chess_logic.has_won(board)
     -- RETURNS 0 - No winner, 1 - White won, 2 - Black won
 
-    local moves = tug_chess_logic.get_next_boards(board, true)
+    local moves = tug_chess_logic.get_next_boards(board, 1)
     if #moves == 0 and in_check(board, true) then
         return 2
     end
 
-    moves = tug_chess_logic.get_next_boards(board, false)
+    moves = tug_chess_logic.get_next_boards(board, 2)
     if #moves == 0 and in_check(board, false) then
         return 1
     end
