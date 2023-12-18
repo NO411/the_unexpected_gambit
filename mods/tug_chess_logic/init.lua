@@ -168,7 +168,7 @@ function tug_chess_logic.apply_move(from, to, input_board)
     return board
 end
 
-local function in_check(board, white)
+local function find_king(board, white)
     local king_coord = nil
     local _break = false
     -- set king_coord
@@ -185,12 +185,22 @@ local function in_check(board, white)
             end
         end
     end
+    return king_coord
+end
+
+local function in_check(board, white)
+    local king_coord = find_king(board, white)
+    local opposite_king = find_king(board, not white)
+
+    if math.sqrt((king_coord.x - opposite_king.x)^2 + (king_coord.z - opposite_king.z)^2) < 1.5 then
+        return true
+    end
 
     for z = 1, 8 do
         for x = 1, 8 do
             local piece_coord = {z = z, x = x}
             local piece = get_piece(board, piece_coord)
-            if (not is_same_color(board, piece_coord, white)) and piece.name ~= "" then
+            if (not is_same_color(board, piece_coord, white)) and piece.name ~= "" and string.lower(piece.name) ~= "k" then
                 -- recursive
                 -- check wether the piece could capture the king
                 -- therefore calculate all possible moves without caring for oponents checks (stop recursion)
