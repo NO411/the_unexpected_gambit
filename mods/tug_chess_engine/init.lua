@@ -3,8 +3,6 @@ local modname = minetest.get_current_modname()
 
 tug_chess_engine = {}
 
-local win_score = 10000
-
 local piece_values_lookup = {
     ["p"] = 1000,
     ["n"] = 3200,
@@ -79,10 +77,6 @@ local piece_square_tables = {
 
 function tug_chess_engine.heuristic(board)
     local white_score = 0
-    
-    --local winning_player = tug_chess_logic.has_won(board)
-    --if winning_player == 1 then white_score = white_score + win_score
-    --elseif winning_player == 2 then white_score = white_score - win_score end
 
 	for l, line in pairs(board) do
 		for r, row in pairs(line) do
@@ -102,29 +96,7 @@ function tug_chess_engine.heuristic(board)
 	return white_score
 end
 
-function tug_chess_engine.hash_board(board)
-	local hash = ""
-	local free_count = 0
-
-	for _, line in pairs(board) do
-		free_count = 0
-		for _, row in pairs(line) do
-			if row.name == "" then
-				free_count = free_count + 1
-			else
-				if free_count > 0 then hash = hash .. free_count end
-				hash = hash .. row.name
-				free_count = 0
-			end
-		end
-		if free_count > 0 then hash = hash .. free_count end
-		hash = hash .. "/"
-	end
-	
-	return hash
-end
-
-function tug_chess_engine.minimax(board, depth, max_p, color)
+function tug_chess_engine.minimax(board, depth, alpha, beta, max_p, color)
 	if depth == 0 then return (3 - 2 * color) * tug_chess_engine.heuristic(board) end
 
 	local score = 0
@@ -132,13 +104,17 @@ function tug_chess_engine.minimax(board, depth, max_p, color)
 	if max_p then
 		score = -math.huge
 		for _, b in pairs(new_boards) do
-			score = math.max(score, tug_chess_engine.minimax(b, depth - 1, false, -color + 3))
+			score = math.max(score, tug_chess_engine.minimax(b, depth - 1, alpha, beta, false, -color + 3))
+			if score > beta then break end
+			alpha = math.max(alpha, score)
 		end
 		return score
 	else
 		score = math.huge
 		for _, b in pairs(new_boards) do
-			score = math.min(score, tug_chess_engine.minimax(b, depth - 1, true, -color + 3))
+			score = math.min(score, tug_chess_engine.minimax(b, depth - 1, alpha, beta, true, -color + 3))
+			if score < alpha then break end
+			beta = math.min(beta, score)
 		end
 		return score
 	end
@@ -151,7 +127,7 @@ function tug_chess_engine.engine_next_board(board, id)
 
 	local score = 0
 	for _, b in pairs(new_boards) do
-		score = tug_chess_engine.minimax(b, 1, false, -id + 3)
+		score = tug_chess_engine.minimax(b, 1, -math.huge, math.huge, false, -id + 3)
 		if score > max_score then
 			max_score = score
 			best_board = b
