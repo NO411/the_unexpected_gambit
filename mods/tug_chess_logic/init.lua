@@ -23,7 +23,10 @@ function deepcopy(t)
 	for l, line in pairs(t) do
 		table.insert(new_table, {})
 		for r, _ in pairs(line) do
-			table.insert(new_table[l], t[l][r])
+			table.insert(new_table[l], {})
+            for key, value in pairs(t[l][r]) do
+                new_table[l][r][key] = value
+            end
 		end
 	end
 	return new_table
@@ -76,10 +79,10 @@ function tug_chess_logic.get_next_boards(board, id)
             local piece = board[z][x]
 
             if ((string.upper(piece.name) == piece.name) and (id == 1)) or ((string.lower(piece.name) == piece.name) and (id == 2)) then
-                local moves = cases[string.lower(piece.name)](deepcopy(board), z, x, string.upper(piece.name) == piece.name, true)
+                local moves = cases[string.lower(piece.name)](board, z, x, string.upper(piece.name) == piece.name, true)
                 if moves then
                     for _, move in pairs(moves) do
-                        table.insert(boards, tug_chess_logic.apply_move({z = z, x = x}, move, deepcopy(board)))
+                        table.insert(boards, tug_chess_logic.apply_move({z = z, x = x}, move, board))
                     end
                 end
             end
@@ -123,7 +126,7 @@ local function is_same_color(board, coord, white)
 end
 
 function tug_chess_logic.apply_move(from, to, input_board)
-    -- to is the apllied move which includes the needed metadata
+    -- to is the applied move which includes the needed metadata
     local board = deepcopy(input_board)
 
     board[to.z][to.x] = board[from.z][from.x]
@@ -138,7 +141,7 @@ function tug_chess_logic.apply_move(from, to, input_board)
     for z = 1, 8 do
         for x = 1, 8 do
             local _name = get_name(board, {z = z, x = x})
-            -- diferent color
+            -- different color
             if ((_name == string.lower(_name) and is_white) or
             (_name == string.upper(_name) and not is_white)) and string.lower(_name) == "p"  then
                 board[z][x].moved = false
@@ -206,7 +209,7 @@ local function in_check(board, white)
                 -- recursive
                 -- check wether the piece could capture the king
                 -- therefore calculate all possible moves without caring for oponents checks (stop recursion)
-                local moves = cases[string.lower(piece.name)](deepcopy(board), piece_coord.z, piece_coord.x, not white, false)
+                local moves = cases[string.lower(piece.name)](board, piece_coord.z, piece_coord.x, not white, false)
                 for _, move in pairs(moves) do
                     if move.z == king_coord.z and move.x == king_coord.x then
                         return true
@@ -418,7 +421,7 @@ cases = {
 function tug_chess_logic.get_moves(z, x)
     -- the moves are absolute
     local name = tug_gamestate.g.current_board[z][x].name
-    return cases[string.lower(name)](deepcopy(tug_gamestate.g.current_board), z, x, string.upper(name) == name, true)
+    return cases[string.lower(name)](tug_gamestate.g.current_board, z, x, string.upper(name) == name, true)
     -- the function which apllies this to a board needs to move the rook if the king castled, only king move returned!
 end
 
