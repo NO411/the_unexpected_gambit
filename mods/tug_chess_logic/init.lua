@@ -3,21 +3,6 @@ local modname = minetest.get_current_modname()
 
 tug_chess_logic = {}
 
-function deepcopy2(t)
-    local t_type = type(t)
-    local copy
-    if t_type == 'table' then
-        copy = {}
-        for t_key, t_value in next, t, nil do
-            copy[deepcopy(t_key)] = deepcopy(t_value)
-        end
-        setmetatable(copy, deepcopy(getmetatable(t)))
-    else
-        copy = t
-    end
-    return copy
-end
-
 function deepcopy(t)
 	local new_table = {}
 	for l, line in pairs(t) do
@@ -42,7 +27,7 @@ function tug_chess_logic.get_default_board()
             end
         elseif r == 1 then
             board[1] = {
-                {name = "R"},
+                {name = "R", moved = true},
                 {name = "N"},
                 {name = "B"},
                 {name = "Q"},
