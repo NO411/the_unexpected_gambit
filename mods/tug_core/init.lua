@@ -134,9 +134,20 @@ local function get_player_id(player)
     end
 end
 
+local function add_marking_circle(player, name)
+    local marking_circle = top_circle_def
+    if tug_gamestate.g.players[tug_gamestate.g.current_player].name == name then
+        marking_circle = bottom_circle_def
+    end
+    marking_circle.text = "tug_marking_circle.png"
+    marking_circle.z_index = 1
+
+    tug_core.hud_refs[name].marking_circle = player:hud_add(marking_circle)
+end
+
 local function add_color_hud(player)
     local name = player:get_player_name()
-    tug_core.hud_refs.name = {}
+    tug_core.hud_refs[name] = {}
 
     local top_color = "white"
     local bottom_color = "black"
@@ -149,24 +160,34 @@ local function add_color_hud(player)
 
     local top_circle = top_circle_def
     top_circle.text = "tug_" .. top_color .. "_circle.png"
-    tug_core.hud_refs.name.top_circle = player:hud_add(top_circle)
+    tug_core.hud_refs[name].top_circle = player:hud_add(top_circle)
 
     local bottom_circle = bottom_circle_def
     bottom_circle.text = "tug_" .. bottom_color .. "_circle.png"
-    tug_core.hud_refs.name.bottom_circle = player:hud_add(bottom_circle)
+    tug_core.hud_refs[name].bottom_circle = player:hud_add(bottom_circle)
 
-    local marking_circle = top_circle_def
-    if tug_gamestate.g.players[tug_gamestate.g.current_player].name == name then
-        marking_circle = bottom_circle_def
+    add_marking_circle(player, name)
+end
+
+local function remove_all_huds()
+    for name, huds in pairs(tug_core.hud_refs) do
+        for _, hud in pairs(huds) do
+            minetest.get_player_by_name(name):hud_remove(hud)
+        end
     end
-    marking_circle.text = "tug_marking_circle.png"
-    marking_circle.z_index = 1
-
-    tug_core.hud_refs.name.marking_circle = player:hud_add(marking_circle)
+    tug_core.hud_refs = {}
 end
 
 local function switch_marking_circle(id)
-    player = minetest.get_player_by_name(tug_gamestate.g.player)
+    local name = tug_gamestate.g.players[id].name
+    player = minetest.get_player_by_name(name)
+
+    if not player then
+        return
+    end
+
+    player:hud_remove(tug_core.hud_refs[name].marking_circle)
+    add_marking_circle(player, name)
 end
 
 minetest.register_on_generated(function(minp, maxp, blockseed)
@@ -391,6 +412,8 @@ function decrease_moves_until_unexpected()
 end
 
 function start_game(name, param, unexpected)
+    remove_all_huds()
+
 	tug_gamestate.g.players[1] = {name = name, color = 1}
 	local t = split(param, " ")
 	local player2 = t[#t]
@@ -431,7 +454,7 @@ function start_game(name, param, unexpected)
 		make_move = tug_core.engine_moves_true
 	end
 
-	add_color_hud(minetest.get_player_by_name(name))
+    add_color_hud(minetest.get_player_by_name(name))
 	if player2 ~= "" then
 		add_color_hud(minetest.get_player_by_name(player2))
 	end
