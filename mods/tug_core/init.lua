@@ -163,6 +163,10 @@ local function add_color_hud(player)
     tug_core.hud_refs.name.marking_circle = player:hud_add(marking_circle)
 end
 
+local function switch_marking_circle(id)
+    player = minetest.get_player_by_name(tug_gamestate.g.player)
+end
+
 minetest.register_on_generated(function(minp, maxp, blockseed)
     for x = -1, 8 do
         for z = -1, 8 do
@@ -338,6 +342,8 @@ local function switch_player()
     tug_gamestate.g.current_player = 3 - tug_gamestate.g.current_player
     minetest.chat_send_player(tug_gamestate.g.players[tug_gamestate.g.current_player].name, "Your turn.")
     minetest.chat_send_player(tug_gamestate.g.players[3 - tug_gamestate.g.current_player].name, tug_gamestate.g.players[tug_gamestate.g.current_player].name .. "'s turn.")
+    switch_marking_circle(1)
+    switch_marking_circle(2)
 end
 
 local function made_move()
@@ -345,7 +351,7 @@ local function made_move()
 	decrease_moves_until_unexpected()
     save_metadata()
     update_game_board()
-    -- play sound
+    minetest.sound_play({name = "tug_core_move"}, {}, true)
 end
 
 minetest.register_globalstep(function(dtime)
