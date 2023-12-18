@@ -44,7 +44,7 @@ local piece_square_tables = {
 		{-20,-10,-10,-10,-10,-10,-10,-20},
     },
     ["r"] = {
-		{  0,-50,  5,  10, 10, 5,-50,  0},
+		{  0,  0,  5, 10, 10,  5,  0,  0},
 		{ -5,  0,  0,  0,  0,  0,  0, -5},
 		{ -5,  0,  0,  0,  0,  0,  0, -5},
 		{ -5,  0,  0,  0,  0,  0,  0, -5},
@@ -108,7 +108,6 @@ function tug_chess_engine.minimax(board, depth, alpha, beta, max_p, color)
 			if score > beta then break end
 			alpha = math.max(alpha, score)
 		end
-		return score
 	else
 		score = math.huge
 		for _, b in pairs(new_boards) do
@@ -116,8 +115,9 @@ function tug_chess_engine.minimax(board, depth, alpha, beta, max_p, color)
 			if score < alpha then break end
 			beta = math.min(beta, score)
 		end
-		return score
 	end
+
+	return score
 end
 
 function tug_chess_engine.engine_next_board(board, id)
