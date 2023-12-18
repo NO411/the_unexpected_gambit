@@ -342,6 +342,7 @@ end
 
 local function made_move()
     switch_player()
+	decrease_moves_until_unexpected()
     save_metadata()
     update_game_board()
     -- play sound
@@ -365,18 +366,16 @@ local unexpected_behaviors = {
 		name = "Remove all pawns",
 		pick_min = 1,
 		pick_max = 70,
-		func = function(board)
+		func = function()
 			-- TODO: Implement this thing
-			return board
 		end
 	},
 	{
 		name = "Pawns storm",
 		pick_min = 71,
 		pick_max = 100,
-		func = function(board)
+		func = function()
 			-- TODO: Implement this thing
-			return board
 		end
 	},
 }
@@ -394,7 +393,7 @@ function decrease_moves_until_unexpected()
 			for _, behavior in pairs(unexpected_behaviors) do
 				if behavior.pick_min <= behavior_pick and behavior_pick <= behavior.pick_max then
 					minetest.debug(behavior.name)
-					tug_gamestate.g.current_board = behavior.func(tug_gamestate.g.current_board)
+					behavior.func()
 					break
 				end
 			end
@@ -442,7 +441,6 @@ function start_game(name, param, unexpected)
 
 	if tug_gamestate.g.players[tug_gamestate.g.current_player].name == "" then
 		make_move = tug_core.engine_moves_true
-		decrease_moves_until_unexpected()
 	end
 
 	add_color_hud(minetest.get_player_by_name(name))
@@ -510,11 +508,9 @@ minetest.register_on_punchnode(function(pos, node, puncher, pointed_thing)
                         tug_gamestate.g.current_board = tug_chess_logic.apply_move({x = tug_gamestate.g.current_selected.x + 1, z = tug_gamestate.g.current_selected.z + 1}, selected_move, tug_gamestate.g.current_board)
                         
                         made_move()
-						decrease_moves_until_unexpected()
 						
                         if tug_gamestate.g.players[tug_gamestate.g.current_player].name == "" then
                             make_move = tug_core.engine_moves_true
-							decrease_moves_until_unexpected()
                         end
                     end
                 end
