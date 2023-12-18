@@ -1,11 +1,9 @@
 local minetest, math, vector = minetest, math, vector
 local modname = minetest.get_current_modname()
 
-tug_chess_logic = {
+tug_chess_logic = {}
 
-}
-
-function deepcopy(t)
+function deepcopy2(t)
     local t_type = type(t)
     local copy
     if t_type == 'table' then
@@ -18,6 +16,17 @@ function deepcopy(t)
         copy = t
     end
     return copy
+end
+
+function deepcopy(t)
+	local new_table = {}
+	for l, line in pairs(t) do
+		table.insert(new_table, {})
+		for r, _ in pairs(line) do
+			table.insert(new_table[l], t[l][r])
+		end
+	end
+	return new_table
 end
 
 function tug_chess_logic.get_default_board()
@@ -60,9 +69,6 @@ function tug_chess_logic.get_default_board()
 end
 
 function tug_chess_logic.get_next_boards(board, id)
-    -- RETURNS All next boards for a current player
-    -- id = 1 white
-    -- id = 2 black
     local boards = {}
 
     for z = 1, 8 do
@@ -430,7 +436,3 @@ function tug_chess_logic.has_won(board)
     end
     return 0
 end
-
--- UTILS
-
--- engine_next_board(board [curr board], id [player id of the engine]) - returns the next board for the engine move
