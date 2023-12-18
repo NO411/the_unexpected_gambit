@@ -361,25 +361,6 @@ minetest.register_globalstep(function(dtime)
     end
 end)
 
-local unexpected_behaviors = {
-	{
-		name = "Remove all pawns",
-		pick_min = 1,
-		pick_max = 70,
-		func = function()
-			-- TODO: Implement this thing
-		end
-	},
-	{
-		name = "Pawns storm",
-		pick_min = 71,
-		pick_max = 100,
-		func = function()
-			-- TODO: Implement this thing
-		end
-	},
-}
-
 function generate_moves_until_unexpected()
 	tug_gamestate.g.moves_until_unexpected = math.random(4, 10)
 end
@@ -390,7 +371,7 @@ function decrease_moves_until_unexpected()
 		if tug_gamestate.g.moves_until_unexpected == 0 then
 			generate_moves_until_unexpected()
 			local behavior_pick = math.random(1, 100)
-			for _, behavior in pairs(unexpected_behaviors) do
+			for _, behavior in pairs(tug_unexpected.unexpected_behaviors) do
 				if behavior.pick_min <= behavior_pick and behavior_pick <= behavior.pick_max then
 					minetest.debug(behavior.name)
 					behavior.func()
