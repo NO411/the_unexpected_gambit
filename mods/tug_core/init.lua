@@ -359,51 +359,67 @@ minetest.register_globalstep(function(dtime)
     end
 end)
 
+function start_game(name, param, unexpected)
+	if unexpected then minetest.debug("Unexpected") else minetest.debug("Normal") end
+
+	tug_gamestate.g.players[1] = {name = name, color = 1}
+	local t = split(param, " ")
+	local player2 = t[#t]
+
+	if player2 ~= "" then
+		tug_gamestate.g.players[2] = {name = player2, color = 2}
+	else
+		tug_gamestate.g.players[2] = {name = "", color = 2}
+	end
+
+	math.randomseed(os.time())
+	tug_gamestate.g.current_player = 1
+	if math.random(0, 1) == 1 then
+		tug_gamestate.g.players[1].color = 2
+		tug_gamestate.g.players[2].color = 1
+		tug_gamestate.g.current_player = 2
+		minetest.chat_send_player(name, "You play with the black pieces.")
+		minetest.chat_send_player(player2, "You play with the white pieces.")
+	else
+		minetest.chat_send_player(name, "You play with the white pieces.")
+		minetest.chat_send_player(player2, "You play with the black pieces.")
+	end
+
+	minetest.chat_send_player(tug_gamestate.g.players[tug_gamestate.g.current_player].name, "Your turn.")
+	minetest.chat_send_player(tug_gamestate.g.players[3 - tug_gamestate.g.current_player].name, tug_gamestate.g.players[tug_gamestate.g.current_player].name .. "'s turn.")
+
+	tug_gamestate.g.current_board = tug_chess_logic.get_default_board()
+	update_game_board()
+
+	if tug_gamestate.g.players[tug_gamestate.g.current_player].name == "" then
+		make_move = tug_core.engine_moves_true
+	end
+
+	add_color_hud(minetest.get_player_by_name(name))
+	if player2 ~= "" then
+		add_color_hud(minetest.get_player_by_name(player2))
+	end
+
+	save_metadata()
+end
+
 minetest.register_chatcommand("start", {
-    params = "[player2]",
-    description = "default is singleplayer against engine, use player2 to play against an other player",
+	params = "[Player2]",
+	description = "The game as it was intendet. Default is singleplayer against engine. Use Player2 to play against another player.",
+	privs = {},
+	func = function(name, param)
+		start_game(name, param, true)
+	end,
+
+})
+
+minetest.register_chatcommand("start_normal", {
+    params = "[Player2]",
+    description = "The normal game of chess. Default is singleplayer against engine. Use Player2 to play against another player.",
     privs = {},
     func = function(name, param)
-        tug_gamestate.g.players[1] = {name = name, color = 1}
-        local t = split(param, " ")
-        local player2 = t[#t]
-
-        if player2 ~= "" then
-            tug_gamestate.g.players[2] = {name = player2, color = 2}
-        else
-            tug_gamestate.g.players[2] = {name = "", color = 2}
-        end
-
-        math.randomseed(os.time())
-        tug_gamestate.g.current_player = 1
-        if math.random(0, 1) == 1 then
-            tug_gamestate.g.players[1].color = 2
-            tug_gamestate.g.players[2].color = 1
-            tug_gamestate.g.current_player = 2
-            minetest.chat_send_player(name, "You play with the black pieces.")
-            minetest.chat_send_player(player2, "You play with the white pieces.")
-        else
-            minetest.chat_send_player(name, "You play with the white pieces.")
-            minetest.chat_send_player(player2, "You play with the black pieces.")
-        end
-
-        minetest.chat_send_player(tug_gamestate.g.players[tug_gamestate.g.current_player].name, "Your turn.")
-        minetest.chat_send_player(tug_gamestate.g.players[3 - tug_gamestate.g.current_player].name, tug_gamestate.g.players[tug_gamestate.g.current_player].name .. "'s turn.")
-
-        tug_gamestate.g.current_board = tug_chess_logic.get_default_board()
-        update_game_board()
-
-        if tug_gamestate.g.players[tug_gamestate.g.current_player].name == "" then
-            make_move = tug_core.engine_moves_true
-        end
-
-        add_color_hud(minetest.get_player_by_name(name))
-        if player2 ~= "" then
-            add_color_hud(minetest.get_player_by_name(player2))
-        end
-
-        save_metadata()
-    end,
+		start_game(name, param, false)
+	end,
 })
 
 minetest.register_on_punchnode(function(pos, node, puncher, pointed_thing)
