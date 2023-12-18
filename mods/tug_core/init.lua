@@ -12,6 +12,7 @@ if loaded_gamestate == nil then
         current_player = nil,
         current_selected = nil,
         current_board = nil,
+		moves_until_unexpected = -1,
     }
 end
 
@@ -359,9 +360,49 @@ minetest.register_globalstep(function(dtime)
     end
 end)
 
-function start_game(name, param, unexpected)
-	if unexpected then minetest.debug("Unexpected") else minetest.debug("Normal") end
+local unexpected_behaviors = {
+	{
+		name = "Remove all pawns",
+		pick_min = 1,
+		pick_max = 70,
+		func = function(board)
+			-- TODO: Implement this thing
+			return board
+		end
+	},
+	{
+		name = "Pawns storm",
+		pick_min = 71,
+		pick_max = 100,
+		func = function(board)
+			-- TODO: Implement this thing
+			return board
+		end
+	},
+}
 
+function generate_moves_until_unexpected()
+	tug_gamestate.g.moves_until_unexpected = math.random(4, 10)
+end
+
+function decrease_moves_until_unexpected()
+	if tug_gamestate.g.moves_until_unexpected > -1 then
+		tug_gamestate.g.moves_until_unexpected = tug_gamestate.g.moves_until_unexpected - 1
+		if tug_gamestate.g.moves_until_unexpected == 0 then
+			generate_moves_until_unexpected()
+			local behavior_pick = math.random(1, 100)
+			for _, behavior in pairs(unexpected_behaviors) do
+				if behavior.pick_min <= behavior_pick and behavior_pick <= behavior.pick_max then
+					minetest.debug(behavior.name)
+					tug_gamestate.g.current_board = behavior.func(tug_gamestate.g.current_board)
+					break
+				end
+			end
+		end
+	end
+end
+
+function start_game(name, param, unexpected)
 	tug_gamestate.g.players[1] = {name = name, color = 1}
 	local t = split(param, " ")
 	local player2 = t[#t]
@@ -391,8 +432,17 @@ function start_game(name, param, unexpected)
 	tug_gamestate.g.current_board = tug_chess_logic.get_default_board()
 	update_game_board()
 
+	if unexpected then
+		minetest.debug("Unexpected")
+		generate_moves_until_unexpected()
+	else
+		minetest.debug("Normal")
+		tug_gamestate.g.moves_until_unexpected = -1
+	end
+
 	if tug_gamestate.g.players[tug_gamestate.g.current_player].name == "" then
 		make_move = tug_core.engine_moves_true
+		decrease_moves_until_unexpected()
 	end
 
 	add_color_hud(minetest.get_player_by_name(name))
@@ -460,9 +510,11 @@ minetest.register_on_punchnode(function(pos, node, puncher, pointed_thing)
                         tug_gamestate.g.current_board = tug_chess_logic.apply_move({x = tug_gamestate.g.current_selected.x + 1, z = tug_gamestate.g.current_selected.z + 1}, selected_move, tug_gamestate.g.current_board)
                         
                         made_move()
-
+						decrease_moves_until_unexpected()
+						
                         if tug_gamestate.g.players[tug_gamestate.g.current_player].name == "" then
                             make_move = tug_core.engine_moves_true
+							decrease_moves_until_unexpected()
                         end
                     end
                 end
