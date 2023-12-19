@@ -14,28 +14,21 @@ tug_unexpected = {
 				end	
 			end
         },
-        {
-            name = "Pawns storm",
-            pick_min = 0,
-            pick_max = 0,
-            func = function()
-                -- TODO: Implement this thing
-            end
-        },
-		{
-			name = "Swap player",
-			pick_min = 0,
-			pick_max = 0,
-			func = function()
-                -- TODO: Implement this thing
-            end
-		},
 		{
 			name = "Delete piece",
 			pick_min = 0,
 			pick_max = 0,
 			func = function()
-                -- TODO: Implement this thing
+				local pieces = {}
+				for l, line in pairs(tug_gamestate.g.current_board) do
+					for r, row in pairs(line) do
+						if row.name ~= "" then
+							table.insert(pieces, {l=l, r=r})
+						end
+					end
+				end
+				local rand_piece = pieces[math.random(1, #pieces)]
+				tug_gamestate.g.current_board[rand_piece.l][rand_piece.r] = {name = ""}
             end
 		},
 		{
@@ -43,8 +36,21 @@ tug_unexpected = {
 			pick_min = 0,
 			pick_max = 0,
 			func = function()
-                -- TODO: Implement this thing
-            end
+				local free_squares = {}
+				for l, line in pairs(tug_gamestate.g.current_board) do
+					for r, row in pairs(line) do
+						if row.name == "" then
+							table.insert(free_squares, {l=l, r=r})
+						end
+					end
+				end
+				if #free_squares > 0 then
+					local rand_square = free_squares[math.random(1, #free_squares)]
+					local pieces_list = {"k", "q", "b", "n", "r", "K", "Q", "B", "N", "R"}
+					local new_piece = pieces_list[math.random(1, #pieces_list)]
+					tug_gamestate.g.current_board[rand_square.l][rand_square.r] = {name = new_piece}
+				end
+			end
 		},
 		{
 			name = "Swap queens",
@@ -72,7 +78,19 @@ tug_unexpected = {
 			pick_min = 0,
 			pick_max = 0,
 			func = function()
-				-- TODO: Implement this thing
+				local pieces = {}
+				for l, line in pairs(tug_gamestate.g.current_board) do
+					for r, row in pairs(line) do
+						if row.name ~= "" then
+							table.insert(pieces, {l=l, r=r})
+						end
+					end
+				end
+				local piece_one = pieces[math.random(1, math.floor(#pieces / 2))]
+				local piece_two = pieces[math.random(math.floor(#pieces / 2) + 1, #pieces)]
+				local temp_piece = tug_gamestate.g.current_board[piece_one.l][piece_one.r]
+				tug_gamestate.g.current_board[piece_one.l][piece_one.r] = tug_gamestate.g.current_board[piece_two.l][piece_two.r]
+				tug_gamestate.g.current_board[piece_two.l][piece_two.r] = temp_piece
 			end
 		},
 		{
@@ -91,6 +109,22 @@ tug_unexpected = {
 		},
 		{
 			name = "Time travel",
+			pick_min = 0,
+			pick_max = 0,
+			func = function()
+                -- TODO: Implement this thing
+            end
+		},
+		{
+            name = "Pawns storm",
+            pick_min = 0,
+            pick_max = 0,
+            func = function()
+                -- TODO: Implement this thing
+            end
+        },
+		{
+			name = "Swap player",
 			pick_min = 0,
 			pick_max = 0,
 			func = function()
