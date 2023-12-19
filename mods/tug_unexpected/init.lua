@@ -108,6 +108,14 @@ tug_unexpected = {
 			end
 		},
 		{
+			name = "Night switch",
+			pick_min = 0,
+			pick_max = 0,
+			func = function()
+				minetest.set_timeofday(1)
+			end
+		},
+		{
 			name = "Time travel",
 			pick_min = 0,
 			pick_max = 0,

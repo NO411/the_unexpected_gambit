@@ -452,6 +452,7 @@ function decrease_moves_until_unexpected()
 			generate_moves_until_unexpected()
 			local behavior_pick = math.random(1, 100)
 			for _, behavior in pairs(tug_unexpected.unexpected_behaviors) do
+				minetest.set_timeofday(0.5)
 				if behavior.pick_min <= behavior_pick and behavior_pick <= behavior.pick_max then
 					minetest.debug(behavior.name)
 					behavior.func()
