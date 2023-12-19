@@ -111,20 +111,34 @@ minetest.register_craftitem(prefix .. "hand", {
 local top_circle_def = {
     hud_elem_type = "image",
     position = {x = 1, y = 0},
-    alignment = {x = -1, y = 1},
+    alignment = {x = 0, y = 0},
     scale = {x = 0.25, y = 0.25},
-    offset = {x = -50, y = 50},
+    offset = {x = -100, y = 100},
     z_index = 0,
 }
 
 local bottom_circle_def = {
     hud_elem_type = "image",
     position = {x = 1, y = 1},
-    alignment = {x = -1, y = -1},
+    alignment = {x = 0, y = 0},
     scale = {x = 0.25, y = 0.25},
-    offset = {x = -50, y = -50},
+    offset = {x = -100, y = -100},
     z_index = 0,
 }
+
+function copy_hud_def(orig)
+    local copy
+    if type(orig) == 'table' then
+        copy = {}
+        for orig_key, orig_value in next, orig, nil do
+            copy[copy_hud_def(orig_key)] = copy_hud_def(orig_value)
+        end
+        setmetatable(copy, copy_hud_def(getmetatable(orig)))
+    else
+        copy = orig
+    end
+    return copy
+end
 
 local function get_player_id(player)
     for i, _player in pairs(tug_gamestate.g.players) do
@@ -135,9 +149,9 @@ local function get_player_id(player)
 end
 
 local function add_marking_circle(player, name)
-    local marking_circle = top_circle_def
+    local marking_circle = copy_hud_def(top_circle_def)
     if tug_gamestate.g.players[tug_gamestate.g.current_player].name == name then
-        marking_circle = bottom_circle_def
+        marking_circle = copy_hud_def(bottom_circle_def)
     end
     marking_circle.text = "tug_marking_circle.png"
     marking_circle.z_index = 1
@@ -158,13 +172,25 @@ local function add_color_hud(player)
         bottom_color = _temp
     end
 
-    local top_circle = top_circle_def
+    local top_circle = copy_hud_def(top_circle_def)
     top_circle.text = "tug_" .. top_color .. "_circle.png"
     tug_core.hud_refs[name].top_circle = player:hud_add(top_circle)
 
-    local bottom_circle = bottom_circle_def
+    local bottom_circle = copy_hud_def(bottom_circle_def)
     bottom_circle.text = "tug_" .. bottom_color .. "_circle.png"
     tug_core.hud_refs[name].bottom_circle = player:hud_add(bottom_circle)
+
+    local bottom_circle_text = copy_hud_def(bottom_circle_def)
+    bottom_circle_text.text = "You"
+    bottom_circle_text.hud_elem_type = "text"
+    bottom_circle_text.offset.y = bottom_circle_text.offset.y - 80
+    tug_core.hud_refs[name].bottom_circle_text = player:hud_add(bottom_circle_text)
+
+    local top_circle_text = copy_hud_def(top_circle_def)
+    top_circle_text.text = "Opponent"
+    top_circle_text.hud_elem_type = "text"
+    top_circle_text.offset.y = top_circle_text.offset.y - 70
+    tug_core.hud_refs[name].top_circle_text = player:hud_add(top_circle_text)
 
     add_marking_circle(player, name)
 end
@@ -238,7 +264,7 @@ minetest.register_on_generated(function(minp, maxp, blockseed)
 end)
 
 for _, piece in pairs(entity_lookup) do
-    minetest.chat_send_all(piece)
+    --minetest.chat_send_all(piece)
     minetest.register_entity(prefix .. piece, {
         initial_properties = {
             visual = "mesh",
@@ -330,10 +356,10 @@ minetest.register_on_joinplayer(function(player)
     local found = false
     for i, p in ipairs(tug_gamestate.g.players) do
         if p.name == name then
-            if i == tug_gamestate.g.current_player then
-                minetest.chat_send_player(p.name, "Your turn.")
+            if i ~= tug_gamestate.g.current_player then
+                --minetest.chat_send_player(p.name, "Your turn.")
             else
-                minetest.chat_send_player(p.name, tug_gamestate.g.players[tug_gamestate.g.current_player].name .. "'s turn.")
+                --minetest.chat_send_player(p.name, tug_gamestate.g.players[tug_gamestate.g.current_player].name .. "'s turn.")
                 -- engine moves
                 if tug_gamestate.g.players[tug_gamestate.g.current_player].name == "" then
                     make_move = tug_core.engine_moves_true
@@ -363,8 +389,8 @@ end
 
 local function switch_player()
     tug_gamestate.g.current_player = 3 - tug_gamestate.g.current_player
-    minetest.chat_send_player(tug_gamestate.g.players[tug_gamestate.g.current_player].name, "Your turn.")
-    minetest.chat_send_player(tug_gamestate.g.players[3 - tug_gamestate.g.current_player].name, tug_gamestate.g.players[tug_gamestate.g.current_player].name .. "'s turn.")
+    --minetest.chat_send_player(tug_gamestate.g.players[tug_gamestate.g.current_player].name, "Your turn.")
+    --minetest.chat_send_player(tug_gamestate.g.players[3 - tug_gamestate.g.current_player].name, tug_gamestate.g.players[tug_gamestate.g.current_player].name .. "'s turn.")
     switch_marking_circle(1)
     switch_marking_circle(2)
 end
@@ -454,15 +480,15 @@ function start_game(name, param, unexpected)
 		tug_gamestate.g.players[1].color = 2
 		tug_gamestate.g.players[2].color = 1
 		tug_gamestate.g.current_player = 2
-		minetest.chat_send_player(name, "You play with the black pieces.")
-		minetest.chat_send_player(player2, "You play with the white pieces.")
+		--minetest.chat_send_player(name, "You play with the black pieces.")
+		--minetest.chat_send_player(player2, "You play with the white pieces.")
 	else
-		minetest.chat_send_player(name, "You play with the white pieces.")
-		minetest.chat_send_player(player2, "You play with the black pieces.")
+		--minetest.chat_send_player(name, "You play with the white pieces.")
+		--minetest.chat_send_player(player2, "You play with the black pieces.")
 	end
 
-	minetest.chat_send_player(tug_gamestate.g.players[tug_gamestate.g.current_player].name, "Your turn.")
-	minetest.chat_send_player(tug_gamestate.g.players[3 - tug_gamestate.g.current_player].name, tug_gamestate.g.players[tug_gamestate.g.current_player].name .. "'s turn.")
+	--minetest.chat_send_player(tug_gamestate.g.players[tug_gamestate.g.current_player].name, "Your turn.")
+	--minetest.chat_send_player(tug_gamestate.g.players[3 - tug_gamestate.g.current_player].name, tug_gamestate.g.players[tug_gamestate.g.current_player].name .. "'s turn.")
 
 	tug_gamestate.g.current_board = tug_chess_logic.get_default_board()
 	update_game_board()
