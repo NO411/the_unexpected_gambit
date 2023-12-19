@@ -13,6 +13,7 @@ if loaded_gamestate == nil then
         current_selected = nil,
         current_board = nil,
 		moves_until_unexpected = -1,
+		last_boards = {},
     }
 end
 
@@ -418,6 +419,10 @@ local function made_move(new_board)
 
     switch_player()
 	decrease_moves_until_unexpected()
+	table.insert(tug_gamestate.g.last_boards, deepcopy(tug_gamestate.g.current_board))
+	if #tug_gamestate.g.last_boards > 10 then
+		table.remove(tug_gamestate.g.last_boards, 1)
+	end
     save_metadata()
     update_game_board()
 
