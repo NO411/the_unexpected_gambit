@@ -369,12 +369,39 @@ local function switch_player()
     switch_marking_circle(2)
 end
 
-local function made_move()
+local function made_move(new_board)
+    local old_pieces = 0
+    for l, line in pairs(tug_gamestate.g.current_board) do
+        for r, row in pairs(line) do
+            if string.lower(row.name) ~= "" then
+                old_pieces = old_pieces + 1
+            end
+        end
+    end	
+    local new_pieces = 0
+    for l, line in pairs(new_board) do
+        for r, row in pairs(line) do
+            if string.lower(row.name) ~= "" then
+                new_pieces = new_pieces + 1
+            end
+        end
+    end
+    local capture_move = new_pieces == (old_pieces - 1)
+
+    tug_gamestate.g.current_board = new_board
+
     switch_player()
 	decrease_moves_until_unexpected()
     save_metadata()
     update_game_board()
-    minetest.sound_play({name = "tug_core_move"}, {}, true)
+
+    if tug_chess_logic.in_check(tug_gamestate.g.current_board, tug_gamestate.g.players[tug_gamestate.g.current_player].color == 1) then
+        minetest.sound_play({name = "tug_core_check"}, {}, true)
+    elseif capture_move then
+        minetest.sound_play({name = "tug_core_capture"}, {}, true)
+    else
+        minetest.sound_play({name = "tug_core_move"}, {}, true)
+    end
 end
 
 minetest.register_globalstep(function(dtime)
@@ -384,9 +411,7 @@ minetest.register_globalstep(function(dtime)
     make_move = make_move - 1
     if make_move == 1 then
         make_move = 0
-        tug_gamestate.g.current_board = tug_chess_engine.engine_next_board(tug_gamestate.g.current_board, tug_gamestate.g.players[2].color)
-        
-        made_move()
+        made_move(tug_chess_engine.engine_next_board(tug_gamestate.g.current_board, tug_gamestate.g.players[2].color))
     end
 end)
 
@@ -516,9 +541,7 @@ minetest.register_on_punchnode(function(pos, node, puncher, pointed_thing)
                         end
                     end
                     if selected_move then
-                        tug_gamestate.g.current_board = tug_chess_logic.apply_move({x = tug_gamestate.g.current_selected.x + 1, z = tug_gamestate.g.current_selected.z + 1}, selected_move, tug_gamestate.g.current_board)
-                        
-                        made_move()
+                        made_move(tug_chess_logic.apply_move({x = tug_gamestate.g.current_selected.x + 1, z = tug_gamestate.g.current_selected.z + 1}, selected_move, tug_gamestate.g.current_board))
 						
                         if tug_gamestate.g.players[tug_gamestate.g.current_player].name == "" then
                             make_move = tug_core.engine_moves_true

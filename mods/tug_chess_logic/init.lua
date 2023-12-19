@@ -188,7 +188,7 @@ local function find_king(board, white)
     return king_coord
 end
 
-local function in_check(board, white)
+function tug_chess_logic.in_check(board, white)
     local king_coord = find_king(board, white)
     local opposite_king = find_king(board, not white)
 
@@ -219,7 +219,7 @@ end
 
 local function in_check_when_move(board, from, to, white)
     -- king castle already filtered in cases["k"]
-    return in_check(tug_chess_logic.apply_move(from, to, board), white)
+    return tug_chess_logic.in_check(tug_chess_logic.apply_move(from, to, board), white)
 end
 
 local function filter_legal_moves(board, from, to_moves, white, check_for_check)
@@ -393,7 +393,7 @@ cases = {
             is_empty(board, {z = z, x = 7}) and
             is_empty(board, {z = z, x = 6}) and
             not in_check_when_move(board, {z = z, x = x}, {z = z, x = 6}, white) and
-            not in_check(board, white) then
+            not tug_chess_logic.in_check(board, white) then
                 table.insert(moves, {z = z, x = 7, castling = true, moved = true})
             end
             -- queen side
@@ -403,7 +403,7 @@ cases = {
             is_empty(board, {z = z, x = 3}) and
             is_empty(board, {z = z, x = 4}) and
             not in_check_when_move(board, {z = z, x = x}, {z = z, x = 4}, white) and
-            not in_check(board, white) then
+            not tug_chess_logic.in_check(board, white) then
                 table.insert(moves, {z = z, x = 3, castling = true, moved = true})
             end
         end
@@ -424,12 +424,12 @@ function tug_chess_logic.has_won(board)
     -- RETURNS 0 - No winner, 1 - White won, 2 - Black won
 
     local moves = tug_chess_logic.get_next_boards(board, 1)
-    if #moves == 0 and in_check(board, true) then
+    if #moves == 0 and tug_chess_logic.in_check(board, true) then
         return 2
     end
 
     moves = tug_chess_logic.get_next_boards(board, 2)
-    if #moves == 0 and in_check(board, false) then
+    if #moves == 0 and tug_chess_logic.in_check(board, false) then
         return 1
     end
     return 0
