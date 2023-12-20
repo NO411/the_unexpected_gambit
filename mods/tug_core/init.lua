@@ -335,7 +335,20 @@ minetest.register_on_joinplayer(function(player)
     player:set_inventory_formspec(
 		"formspec_version[4]" ..
 		"size[10, 10]" ..
-		"label[0.5,0.5; ]"
+		"label[0.5,0.5;" ..
+        [[How to play:
+
+Open the chat and run one of the following commands:
+        
+/start {Player2}
+Play the game as it was intendet.
+
+/start_normal {Player2}
+Play a normal game of chess.
+        
+The {Player2} Parameter is optional but needed,
+if you want to play against another player.
+Without it the engine is picked as opponent.]]
 	)
 
     player:set_physics_override({speed = 1.5})
