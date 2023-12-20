@@ -3,8 +3,8 @@ tug_unexpected = {
         {
             name = "Remove all pawns",
 			color = "#6A0572",
-            pick_min = 0,
-            pick_max = 0,
+            pick_min = 1,
+            pick_max = 5,
             func = function()
 				for l, line in pairs(tug_gamestate.g.current_board) do
 					for r, row in pairs(line) do
@@ -18,8 +18,8 @@ tug_unexpected = {
 		{
 			name = "Delete piece",
 			color = "#FF4500",
-			pick_min = 0,
-			pick_max = 0,
+			pick_min = 6,
+			pick_max = 25,
 			func = function()
 				local pieces = {}
 				for l, line in pairs(tug_gamestate.g.current_board) do
@@ -36,8 +36,8 @@ tug_unexpected = {
 		{
 			name = "Add piece",
 			color = "#3498db",
-			pick_min = 0,
-			pick_max = 0,
+			pick_min = 21,
+			pick_max = 36,
 			func = function()
 				local free_squares = {}
 				for l, line in pairs(tug_gamestate.g.current_board) do
@@ -58,8 +58,8 @@ tug_unexpected = {
 		{
 			name = "Swap queens",
 			color = "#FFD700",
-			pick_min = 0,
-			pick_max = 0,
+			pick_min = 37,
+			pick_max = 41,
 			func = function()
 				local queens = {}
 				for l, line in pairs(tug_gamestate.g.current_board) do
@@ -80,8 +80,8 @@ tug_unexpected = {
 		{
 			name = "Swap two pieces",
 			color = "#2ecc71",
-			pick_min = 0,
-			pick_max = 0,
+			pick_min = 42,
+			pick_max = 64,
 			func = function()
 				local pieces = {}
 				for l, line in pairs(tug_gamestate.g.current_board) do
@@ -101,8 +101,8 @@ tug_unexpected = {
 		{
 			name = "Showdown",
 			color = "#9b59b6",
-			pick_min = 0,
-			pick_max = 0,
+			pick_min = 65,
+			pick_max = 70,
 			func = function()
 				for l, line in pairs(tug_gamestate.g.current_board) do
 					for r, row in pairs(line) do
@@ -116,8 +116,8 @@ tug_unexpected = {
 		{
 			name = "Night switch",
 			color = "#e74c3c",
-			pick_min = 0,
-			pick_max = 0,
+			pick_min = 71,
+			pick_max = 84,
 			func = function()
 				minetest.set_timeofday(1)
 			end
@@ -125,12 +125,14 @@ tug_unexpected = {
 		{
 			name = "Time travel",
 			color = "#00CED1",
-			pick_min = 0,
-			pick_max = 0,
+			pick_min = 85,
+			pick_max = 100,
 			func = function()
                 tug_gamestate.g.current_board = deepcopy(tug_gamestate.g.last_boards[math.random(1, #tug_gamestate.g.last_boards)])
             end
 		},
+
+
 		{
             name = "Pawns storm",
 			color = "#F08080",

@@ -566,7 +566,7 @@ local function display_unexpected_behavior(behavior_name, behavior_color)
 end
 
 function generate_moves_until_unexpected()
-	tug_gamestate.g.moves_until_unexpected = math.random(4, 10)
+	tug_gamestate.g.moves_until_unexpected = math.random(3, 8)
 end
 
 function decrease_moves_until_unexpected()
