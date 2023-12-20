@@ -454,6 +454,7 @@ local function reset_game(has_won)
             end
         end
         remove_all_huds()
+        save_metadata()
     end)
 end
 
