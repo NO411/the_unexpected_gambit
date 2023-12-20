@@ -125,8 +125,8 @@ tug_unexpected = {
 		{
 			name = "Time travel",
 			color = "#00CED1",
-			pick_min = 1,
-			pick_max = 100,
+			pick_min = 0,
+			pick_max = 0,
 			func = function()
                 tug_gamestate.g.current_board = deepcopy(tug_gamestate.g.last_boards[math.random(1, #tug_gamestate.g.last_boards)])
             end

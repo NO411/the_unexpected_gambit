@@ -27,7 +27,7 @@ function tug_chess_logic.get_default_board()
             end
         elseif r == 1 then
             board[1] = {
-                {name = "R", moved = true},
+                {name = "R"},
                 {name = "N"},
                 {name = "B"},
                 {name = "Q"},
@@ -420,6 +420,17 @@ function tug_chess_logic.get_moves(z, x)
     -- the function which apllies this to a board needs to move the rook if the king castled, only king move returned!
 end
 
+local function same_boards(b1, b2)
+    for z = 1, 8 do
+        for x = 1, 8 do
+            if b1[z][x].name ~= b2[z][x].name then
+                return false
+            end
+        end
+    end
+    return true
+end
+
 function tug_chess_logic.has_won(board, white_on_move)
     -- RETURNS 0 - No winner, 1 - White won, 2 - Black won, 3 - Remi
     -- only for the case when the player has no moves
@@ -432,5 +443,11 @@ function tug_chess_logic.has_won(board, white_on_move)
             return 3
         end
     end
+
+    local n = #tug_gamestate.g.last_boards
+    if n > 8 and same_boards(board, tug_gamestate.g.last_boards[n - 4]) and same_boards(board, tug_gamestate.g.last_boards[n - 8]) then
+        return 3
+    end
+
     return 0
 end

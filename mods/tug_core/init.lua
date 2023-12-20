@@ -6,7 +6,7 @@ local storage = minetest.get_mod_storage()
 local loaded_gamestate = minetest.deserialize(storage:get_string("gamestate"))
 tug_gamestate.g = loaded_gamestate
 
-if loaded_gamestate == nil then
+local function delete_gamestate()
     tug_gamestate.g = {
         players = {"", ""},
         current_player = nil,
@@ -15,6 +15,10 @@ if loaded_gamestate == nil then
 		moves_until_unexpected = -1,
 		last_boards = {},
     }
+end
+
+if loaded_gamestate == nil then
+    delete_gamestate()
 end
 
 math.randomseed(os.time())
@@ -205,7 +209,10 @@ end
 local function remove_all_huds()
     for name, huds in pairs(tug_core.hud_refs) do
         for _, hud in pairs(huds) do
-            minetest.get_player_by_name(name):hud_remove(hud)
+            local player = minetest.get_player_by_name(name)
+            if player then
+                player:hud_remove(hud)
+            end
         end
     end
     tug_core.hud_refs = {}
@@ -332,7 +339,7 @@ minetest.register_on_joinplayer(function(player)
 	)
 
     player:set_physics_override({speed = 1.5})
-
+    player:set_properties({selectionbox = {0, 0, 0, 0, 0, 0, rotate = false}})
     local clr1 = colors.sky
 	player:set_sky({
         clouds = false,
@@ -438,14 +445,7 @@ local function reset_game(has_won)
 
     minetest.after(4, function()
         tug_core.interaction_blocked = false
-        tug_gamestate.g = {
-            players = {"", ""},
-            current_player = nil,
-            current_selected = nil,
-            current_board = nil,
-            moves_until_unexpected = -1,
-            last_boards = {},
-        }
+        delete_gamestate()
         update_game_board()
 
         for name, hud in pairs(msg_huds) do
@@ -592,6 +592,7 @@ local function start_game(name, param, unexpected)
         return
     end
 
+    delete_gamestate()
     remove_all_huds()
 
 	tug_gamestate.g.players[1] = {name = name, color = 1}
