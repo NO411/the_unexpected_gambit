@@ -22,6 +22,7 @@ math.randomseed(os.time())
 tug_core = {
     engine_moves_true = 3,
     hud_refs = {},
+    interaction_blocked = false,
 }
 
 -- metadata
@@ -185,12 +186,16 @@ local function add_color_hud(player)
     bottom_circle_text.text = "You"
     bottom_circle_text.hud_elem_type = "text"
     bottom_circle_text.offset.y = bottom_circle_text.offset.y - 80
+    bottom_circle_text.number = 0x2E2E2E
+    bottom_circle_text.style = 1
     tug_core.hud_refs[name].bottom_circle_text = player:hud_add(bottom_circle_text)
 
     local top_circle_text = copy_hud_def(top_circle_def)
     top_circle_text.text = "Opponent"
     top_circle_text.hud_elem_type = "text"
-    top_circle_text.offset.y = top_circle_text.offset.y - 70
+    top_circle_text.offset.y = top_circle_text.offset.y - 80
+    top_circle_text.number = 0x2E2E2E
+    top_circle_text.style = 1
     tug_core.hud_refs[name].top_circle_text = player:hud_add(top_circle_text)
 
     add_marking_circle(player, name)
@@ -396,7 +401,67 @@ local function switch_player()
     switch_marking_circle(2)
 end
 
+local function get_player_name_by_color(color_id)
+    for _, player in pairs(tug_gamestate.g.players) do
+        if player.color == color_id then
+            return player.name
+        end
+    end
+end
+
+local function reset_game(has_won)
+    local message = "Remi!"
+    if has_won ~= 3 then
+        local winner_name = get_player_name_by_color(has_won)
+        if winner_name == "" then
+            winner_name = "The Engine"
+        end
+        message = winner_name .. " won with the " .. ((has_won == 1) and "white" or "black") .. " pieces!"
+    end
+    tug_core.interaction_blocked = true
+
+    local msg_huds = {}
+    for _, player in pairs(minetest.get_connected_players()) do
+        local name = player:get_player_name()
+        msg_huds[name] = player:hud_add({
+            hud_elem_type = "text",
+            position = {x = 0.5, y = 0.5},
+            offset = {x = 0, y = -100},
+            text = message,
+            alignment = {x = 0, y = 0},
+            size = {x = 2, y = 2},
+            style = 1,
+            number = 0x96C441,
+        })
+    end
+
+    minetest.after(4, function()
+        tug_core.interaction_blocked = false
+        tug_gamestate.g = {
+            players = {"", ""},
+            current_player = nil,
+            current_selected = nil,
+            current_board = nil,
+            moves_until_unexpected = -1,
+            last_boards = {},
+        }
+        update_game_board()
+
+        for name, hud in pairs(msg_huds) do
+            local player = minetest.get_player_by_name(name)
+            if player then
+                player:hud_remove(msg_huds[name])
+            end
+        end
+        remove_all_huds()
+    end)
+end
+
 local function made_move(new_board)
+    if not new_board then
+        return
+    end
+
     local old_pieces = 0
     for l, line in pairs(tug_gamestate.g.current_board) do
         for r, row in pairs(line) do
@@ -442,7 +507,14 @@ minetest.register_globalstep(function(dtime)
     make_move = make_move - 1
     if make_move == 1 then
         make_move = 0
-        made_move(tug_chess_engine.engine_next_board(tug_gamestate.g.current_board, tug_gamestate.g.players[2].color))
+        local new_board = tug_chess_engine.engine_next_board(tug_gamestate.g.current_board, tug_gamestate.g.players[2].color)
+        if new_board then
+            made_move(new_board)
+            local has_won = tug_chess_logic.has_won(tug_gamestate.g.current_board, tug_gamestate.g.players[tug_gamestate.g.current_player].color == 1)
+            if has_won > 0 then
+                reset_game(has_won)
+            end
+        end
     end
 end)
 
@@ -469,6 +541,10 @@ function decrease_moves_until_unexpected()
 end
 
 function start_game(name, param, unexpected)
+    if tug_core.interaction_blocked then
+        return
+    end
+
     remove_all_huds()
 
 	tug_gamestate.g.players[1] = {name = name, color = 1}
@@ -539,6 +615,10 @@ minetest.register_chatcommand("start_normal", {
 })
 
 minetest.register_on_punchnode(function(pos, node, puncher, pointed_thing)
+    if tug_core.interaction_blocked then
+        return
+    end
+
     if node.name == prefix .. "light" or node.name == prefix .. "dark" then
         local x = pos.x
         local y = pos.y
@@ -574,9 +654,14 @@ minetest.register_on_punchnode(function(pos, node, puncher, pointed_thing)
                     end
                     if selected_move then
                         made_move(tug_chess_logic.apply_move({x = tug_gamestate.g.current_selected.x + 1, z = tug_gamestate.g.current_selected.z + 1}, selected_move, tug_gamestate.g.current_board))
-						
-                        if tug_gamestate.g.players[tug_gamestate.g.current_player].name == "" then
+                        local has_won = tug_chess_logic.has_won(tug_gamestate.g.current_board, tug_gamestate.g.players[tug_gamestate.g.current_player].color == 1)
+
+                        if has_won > 0 then
+                            reset_game(has_won)
+                        elseif tug_gamestate.g.players[tug_gamestate.g.current_player].name == "" then
+                            -- engine makes move when no remi or win found
                             make_move = tug_core.engine_moves_true
+                            -- the global step will make the move and check for a win again
                         end
                     end
                 end
@@ -588,7 +673,17 @@ minetest.register_on_punchnode(function(pos, node, puncher, pointed_thing)
 end)
 
 function update_game_board()
-    if tug_gamestate.g.current_board == nil then
+    if tug_gamestate.g.current_board == nil and not tug_core.interaction_blocked then
+        for y = 0, 7 do
+            for x = 0, 7 do
+                local objs = minetest.get_objects_in_area(vector.new(x - 0.5, ground_level - 0.5, y - 0.5), vector.new(x + 0.5, ground_level + 0.5, y + 0.5))
+                if #objs > 0 then
+                    for _, obj in pairs(objs) do
+                        obj:remove()
+                    end
+                end
+            end
+        end
         return
     end
 

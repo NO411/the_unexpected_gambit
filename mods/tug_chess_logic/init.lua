@@ -420,17 +420,17 @@ function tug_chess_logic.get_moves(z, x)
     -- the function which apllies this to a board needs to move the rook if the king castled, only king move returned!
 end
 
-function tug_chess_logic.has_won(board)
-    -- RETURNS 0 - No winner, 1 - White won, 2 - Black won
+function tug_chess_logic.has_won(board, white_on_move)
+    -- RETURNS 0 - No winner, 1 - White won, 2 - Black won, 3 - Remi
+    -- only for the case when the player has no moves
 
-    local moves = tug_chess_logic.get_next_boards(board, 1)
-    if #moves == 0 and tug_chess_logic.in_check(board, true) then
-        return 2
-    end
-
-    moves = tug_chess_logic.get_next_boards(board, 2)
-    if #moves == 0 and tug_chess_logic.in_check(board, false) then
-        return 1
+    local moves = tug_chess_logic.get_next_boards(board, white_on_move and 1 or 2)
+    if #moves == 0 then
+        if tug_chess_logic.in_check(board, white_on_move) then
+            return white_on_move and 2 or 1
+        else
+            return 3
+        end
     end
     return 0
 end
