@@ -22,6 +22,7 @@ math.randomseed(os.time())
 tug_core = {
     engine_moves_true = 3,
     hud_refs = {},
+    unexpected_hud_refs = {},
     interaction_blocked = false,
 }
 
@@ -169,7 +170,7 @@ local function add_color_hud(player)
     local bottom_color = "black"
 
     if tug_gamestate.g.players[get_player_id(player)].color == 1 then
-        _temp = top_color
+        local _temp = top_color
         top_color = bottom_color
         bottom_color = _temp
     end
@@ -212,7 +213,7 @@ end
 
 local function switch_marking_circle(id)
     local name = tug_gamestate.g.players[id].name
-    player = minetest.get_player_by_name(name)
+    local player = minetest.get_player_by_name(name)
 
     if not player then
         return
@@ -519,6 +520,32 @@ minetest.register_globalstep(function(dtime)
     end
 end)
 
+local function display_unexpected_behavior(behavior_name)
+    local behavior_huds = {}
+    for _, player in pairs(minetest.get_connected_players()) do
+        local name = player:get_player_name()
+        behavior_huds[name] = player:hud_add({
+            hud_elem_type = "text",
+            position = {x = 0.5, y = 0.5},
+            offset = {x = 0, y = 100},
+            text = behavior_name,
+            alignment = {x = 0, y = 0},
+            size = {x = 3, y = 3},
+            style = 1,
+            number = 0xa31435,
+        })
+    end
+
+    minetest.after(2, function()
+        for name, hud in pairs(behavior_huds) do
+            local player = minetest.get_player_by_name(name)
+            if player then
+                player:hud_remove(behavior_huds[name])
+            end
+        end
+    end)
+end
+
 function generate_moves_until_unexpected()
 	tug_gamestate.g.moves_until_unexpected = math.random(4, 10)
 end
@@ -532,7 +559,7 @@ function decrease_moves_until_unexpected()
 			for _, behavior in pairs(tug_unexpected.unexpected_behaviors) do
 				minetest.set_timeofday(0.5)
 				if behavior.pick_min <= behavior_pick and behavior_pick <= behavior.pick_max then
-					minetest.debug(behavior.name)
+					display_unexpected_behavior(behavior.name)
 					behavior.func()
 					break
 				end
@@ -541,7 +568,7 @@ function decrease_moves_until_unexpected()
 	end
 end
 
-function start_game(name, param, unexpected)
+local function start_game(name, param, unexpected)
     if tug_core.interaction_blocked then
         return
     end
@@ -577,10 +604,10 @@ function start_game(name, param, unexpected)
 	update_game_board()
 
 	if unexpected then
-		minetest.debug("Unexpected")
+		--minetest.debug("Unexpected")
 		generate_moves_until_unexpected()
 	else
-		minetest.debug("Normal")
+		--minetest.debug("Normal")
 		tug_gamestate.g.moves_until_unexpected = -1
 	end
 
