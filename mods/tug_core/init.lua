@@ -418,7 +418,7 @@ local function get_player_name_by_color(color_id)
 end
 
 local function reset_game(has_won)
-    local message = "Remi!"
+    local message = "This game is a draw!"
     if has_won ~= 3 then
         local winner_name = get_player_name_by_color(has_won)
         if winner_name == "" then

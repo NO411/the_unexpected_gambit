@@ -431,6 +431,42 @@ local function same_boards(b1, b2)
     return true
 end
 
+local function is_dead_position(b)
+    local white_counter = 0
+    local black_counter = 0
+
+    local white_bishop_square = -1
+    local black_bishop_square = -1
+
+    for z = 1, 8 do
+        for x = 1, 8 do
+            local name = b[z][x].name
+            if name == "B" or name == "N" then
+                white_counter = white_counter + 1
+                if name == "B" then
+                    white_bishop_square = (z + x) % 2
+                end
+            elseif name == "b" or name == "n" then
+                black_counter = black_counter + 1
+                if name == "b" then
+                    black_bishop_square = (z + x) % 2
+                end
+            elseif name ~= "" and string.lower(name) ~= "k" then
+                return false
+            end
+        end
+    end
+
+    if white_counter + black_counter <= 1 then
+        return true
+    -- bishops with same square color is also a draw
+    elseif white_counter + black_counter == 2 and white_bishop_square >= 0 and black_bishop_square >= 0 and white_bishop_square == black_bishop_square then
+        return true
+    end
+
+    return false
+end
+
 function tug_chess_logic.has_won(board, white_on_move)
     -- RETURNS 0 - No winner, 1 - White won, 2 - Black won, 3 - Remi
     -- only for the case when the player has no moves
@@ -446,6 +482,10 @@ function tug_chess_logic.has_won(board, white_on_move)
 
     local n = #tug_gamestate.g.last_boards
     if n > 8 and same_boards(board, tug_gamestate.g.last_boards[n - 4]) and same_boards(board, tug_gamestate.g.last_boards[n - 8]) then
+        return 3
+    end
+
+    if is_dead_position(board) then
         return 3
     end
 
