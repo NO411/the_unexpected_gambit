@@ -520,7 +520,8 @@ minetest.register_globalstep(function(dtime)
     end
 end)
 
-local function display_unexpected_behavior(behavior_name)
+local function display_unexpected_behavior(behavior_name, behavior_color)
+    local event_time = 2
     local behavior_huds = {}
     for _, player in pairs(minetest.get_connected_players()) do
         local name = player:get_player_name()
@@ -532,11 +533,11 @@ local function display_unexpected_behavior(behavior_name)
             alignment = {x = 0, y = 0},
             size = {x = 3, y = 3},
             style = 1,
-            number = 0xa31435,
+            number = tonumber(string.sub(behavior_color, 2), 16),
         })
     end
 
-    minetest.after(2, function()
+    minetest.after(event_time, function()
         for name, hud in pairs(behavior_huds) do
             local player = minetest.get_player_by_name(name)
             if player then
@@ -544,6 +545,24 @@ local function display_unexpected_behavior(behavior_name)
             end
         end
     end)
+
+    minetest.add_particlespawner({
+        amount = 1000,
+        time = event_time,
+        vertical = true,
+        texture = "tug_blank.png^[colorize:" .. behavior_color,
+        glow = 5,
+        minpos = {x = 0, y = ground_level, z = 0},
+        maxpos = {x = 7, y = ground_level, z = 7},
+        minvel = {x = -1, y = 0, z = -1},
+        maxvel = {x = 1, y = 10, z = 1},
+        minacc = {x = 0, y = 0, z = 0},
+        maxacc = {x = 0, y = 0, z = 0},
+        minexptime = 0,
+        maxexptime = event_time,
+        minsize = 1,
+        maxsize = 2,
+    })
 end
 
 function generate_moves_until_unexpected()
@@ -559,7 +578,7 @@ function decrease_moves_until_unexpected()
 			for _, behavior in pairs(tug_unexpected.unexpected_behaviors) do
 				minetest.set_timeofday(0.5)
 				if behavior.pick_min <= behavior_pick and behavior_pick <= behavior.pick_max then
-					display_unexpected_behavior(behavior.name)
+					display_unexpected_behavior(behavior.name, behavior.color)
 					behavior.func()
 					break
 				end

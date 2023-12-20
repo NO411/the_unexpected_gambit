@@ -2,6 +2,7 @@ tug_unexpected = {
     unexpected_behaviors = {
         {
             name = "Remove all pawns",
+			color = "#6A0572",
             pick_min = 0,
             pick_max = 0,
             func = function()
@@ -16,6 +17,7 @@ tug_unexpected = {
         },
 		{
 			name = "Delete piece",
+			color = "#FF4500",
 			pick_min = 0,
 			pick_max = 0,
 			func = function()
@@ -33,6 +35,7 @@ tug_unexpected = {
 		},
 		{
 			name = "Add piece",
+			color = "#3498db",
 			pick_min = 0,
 			pick_max = 0,
 			func = function()
@@ -54,6 +57,7 @@ tug_unexpected = {
 		},
 		{
 			name = "Swap queens",
+			color = "#FFD700",
 			pick_min = 0,
 			pick_max = 0,
 			func = function()
@@ -75,6 +79,7 @@ tug_unexpected = {
 		},
 		{
 			name = "Swap two pieces",
+			color = "#2ecc71",
 			pick_min = 0,
 			pick_max = 0,
 			func = function()
@@ -95,6 +100,7 @@ tug_unexpected = {
 		},
 		{
 			name = "Showdown",
+			color = "#9b59b6",
 			pick_min = 0,
 			pick_max = 0,
 			func = function()
@@ -109,6 +115,7 @@ tug_unexpected = {
 		},
 		{
 			name = "Night switch",
+			color = "#e74c3c",
 			pick_min = 0,
 			pick_max = 0,
 			func = function()
@@ -117,6 +124,7 @@ tug_unexpected = {
 		},
 		{
 			name = "Time travel",
+			color = "#00CED1",
 			pick_min = 1,
 			pick_max = 100,
 			func = function()
@@ -125,6 +133,7 @@ tug_unexpected = {
 		},
 		{
             name = "Pawns storm",
+			color = "#F08080",
             pick_min = 0,
             pick_max = 0,
             func = function()
@@ -133,6 +142,7 @@ tug_unexpected = {
         },
 		{
 			name = "Swap player",
+			color = "#1e90ff",
 			pick_min = 0,
 			pick_max = 0,
 			func = function()
