@@ -456,6 +456,10 @@ local function reset_game(has_won)
         })
     end
 
+    minetest.after(0.3, function()
+        minetest.sound_play({name = "tug_core_game_end"}, {}, true)
+    end)
+
     minetest.after(4, function()
         tug_core.interaction_blocked = false
         delete_gamestate()
@@ -534,6 +538,8 @@ minetest.register_globalstep(function(dtime)
 end)
 
 local function display_unexpected_behavior(behavior_name, behavior_color)
+    minetest.sound_play({name = "tug_core_unexpected"}, {}, true)
+
     local event_time = 2
     local behavior_huds = {}
     for _, player in pairs(minetest.get_connected_players()) do
