@@ -13,3 +13,5 @@ Open the chat (Press 'T') and type one of the following commands:
 - `/start_normal [Player2]` - Play a normal game of chess.
 
 > The *Player2* Parameter is optional but needed, if you want to play against another player. Without it the engine is picked as opponent.
+
+Fly mode is activated by default and should be used to get a better overview!
