@@ -26,7 +26,7 @@ tug_unexpected = {
 				local pieces = {}
 				for l, line in pairs(tug_gamestate.g.current_board) do
 					for r, row in pairs(line) do
-						if row.name ~= "" then
+						if row.name ~= "" and string.lower(row.name) ~= "k" then
 							table.insert(pieces, {l=l, r=r})
 						end
 					end
@@ -52,7 +52,7 @@ tug_unexpected = {
 				end
 				if #free_squares > 0 then
 					local rand_square = free_squares[math.random(1, #free_squares)]
-					local pieces_list = {"k", "q", "b", "n", "r", "K", "Q", "B", "N", "R"}
+					local pieces_list = {"q", "b", "n", "r", "Q", "B", "N", "R"}
 					local new_piece = pieces_list[math.random(1, #pieces_list)]
 					tug_gamestate.g.current_board[rand_square.l][rand_square.r] = {name = new_piece}
 				end
@@ -91,7 +91,7 @@ tug_unexpected = {
 				local pieces = {}
 				for l, line in pairs(tug_gamestate.g.current_board) do
 					for r, row in pairs(line) do
-						if row.name ~= "" then
+						if row.name ~= "" and string.lower(row.name) ~= "k" then
 							table.insert(pieces, {l=l, r=r})
 						end
 					end
