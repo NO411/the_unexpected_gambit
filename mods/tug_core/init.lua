@@ -298,9 +298,11 @@ for _, piece in pairs(entity_lookup) do
 end
 
 local selected_textures = {}
+local last_textures = {}
 
 for n = 1, 6 do
     table.insert(selected_textures, "tug_blank.png^[colorize:#ff000080")
+	table.insert(last_textures, "tug_blank.png^[colorize:#fcb10380")
 end
 
 minetest.register_entity(prefix .. "selected", {
@@ -310,6 +312,21 @@ minetest.register_entity(prefix .. "selected", {
         pointable = false,
         collide_with_objects = false,
         textures = selected_textures,
+        visual_size = vector.new(1, 1, 1),
+        static_save = false,
+        use_texture_alpha = true,
+    },
+    on_step = function(self, dtime, moveresult)
+    end,
+})
+
+minetest.register_entity(prefix .. "last", {
+    initial_properties = {
+        visual = "cube",
+        physical = true,
+        pointable = false,
+        collide_with_objects = false,
+        textures = last_textures,
         visual_size = vector.new(1, 1, 1),
         static_save = false,
         use_texture_alpha = true,
@@ -643,6 +660,7 @@ local function start_game(name, param, unexpected)
 	end
 
 	tug_gamestate.g.current_board = tug_chess_logic.get_default_board()
+	table.insert(tug_gamestate.g.last_boards, deepcopy(tug_gamestate.g.current_board))
 	update_game_board()
 
 	local opponent_name = tug_gamestate.g.players[2].name
@@ -792,6 +810,11 @@ function update_game_board()
                     obj:remove()
                 end
             end
+			if #tug_gamestate.g.last_boards > 1 then
+				if tug_gamestate.g.current_board[y + 1][x + 1].name ~= tug_gamestate.g.last_boards[#tug_gamestate.g.last_boards - 1][y + 1][x + 1].name then
+					minetest.add_entity(vector.new(x, ground_level + 0.05, y), prefix .. "last")
+				end
+			end
             local piece = tug_gamestate.g.current_board[y + 1][x + 1]
             if piece.name ~= "" then
                 local ent = minetest.add_entity(vector.new(x, ground_level + 0.5, y), prefix .. entity_lookup[string.upper(piece.name)])
