@@ -14,6 +14,7 @@ local function delete_gamestate()
         current_board = nil,
 		moves_until_unexpected = -1,
 		last_boards = {},
+		engine_strength = 1,
     }
 end
 
@@ -31,7 +32,7 @@ tug_core = {
 }
 
 -- metadata
-function save_metadata()
+local function save_metadata()
     storage:set_string("gamestate", minetest.serialize(tug_gamestate.g))
 end
 
@@ -133,7 +134,7 @@ local bottom_circle_def = {
     z_index = 0,
 }
 
-function copy_hud_def(orig)
+local function copy_hud_def(orig)
     local copy
     if type(orig) == 'table' then
         copy = {}
@@ -157,7 +158,7 @@ end
 
 local function add_marking_circle(player, name)
     local marking_circle = copy_hud_def(top_circle_def)
-    if tug_gamestate.g.players[tug_gamestate.g.current_player].name == name then
+    if tug_gamestate.g.players ~= {"", ""} and tug_gamestate.g.players[tug_gamestate.g.current_player].name == name then
         marking_circle = copy_hud_def(bottom_circle_def)
     end
     marking_circle.text = "tug_marking_circle.png"
@@ -406,7 +407,7 @@ Without it the engine is picked as opponent.]]
     end)
 end)
 
-function split(s, delimiter)
+local function split(s, delimiter)
     local result = {}
     for match in (s .. delimiter):gmatch("(.-)" .. delimiter) do
         table.insert(result, match)
@@ -428,6 +429,13 @@ local function get_player_name_by_color(color_id)
             return player.name
         end
     end
+end
+
+local function clear_all()
+	tug_core.interaction_blocked = false
+	delete_gamestate()
+	update_game_board()
+	save_metadata()
 end
 
 local function reset_game(has_won)
@@ -461,19 +469,15 @@ local function reset_game(has_won)
     end)
 
     minetest.after(4, function()
-        tug_core.interaction_blocked = false
-        delete_gamestate()
-        update_game_board()
-
-        for name, hud in pairs(msg_huds) do
-            local player = minetest.get_player_by_name(name)
-            if player then
-                player:hud_remove(msg_huds[name])
-            end
-        end
-        remove_all_huds()
-        save_metadata()
-    end)
+		clear_all()
+		for name, hud in pairs(msg_huds) do
+			local player = minetest.get_player_by_name(name)
+			if player then
+				player:hud_remove(msg_huds[name])
+			end
+		end
+		remove_all_huds()
+	end)
 end
 
 local function made_move(new_board)
@@ -526,7 +530,7 @@ minetest.register_globalstep(function(dtime)
     make_move = make_move - 1
     if make_move == 1 then
         make_move = 0
-        local new_board = tug_chess_engine.engine_next_board(tug_gamestate.g.current_board, tug_gamestate.g.players[2].color)
+        local new_board = tug_chess_engine.engine_next_board(tug_gamestate.g.current_board, tug_gamestate.g.players[2].color, tug_gamestate.g.engine_strength)
         if new_board then
             made_move(new_board)
             local has_won = tug_chess_logic.has_won(tug_gamestate.g.current_board, tug_gamestate.g.players[tug_gamestate.g.current_player].color == 1)
@@ -584,7 +588,7 @@ local function display_unexpected_behavior(behavior_name, behavior_color)
     })
 end
 
-function generate_moves_until_unexpected()
+local function generate_moves_until_unexpected()
 	tug_gamestate.g.moves_until_unexpected = math.random(5, 10)
 end
 
@@ -616,14 +620,15 @@ local function start_game(name, param, unexpected)
 
 	tug_gamestate.g.players[1] = {name = name, color = 1}
 	local t = split(param, " ")
-	local player2 = t[#t]
+	local player2 = t[1]
 
 	if player2 ~= "" then
 		local p = minetest.get_player_by_name("playername")
 		if p then
 			tug_gamestate.g.players[2] = {name = player2, color = 2}
 		else
-			minetest.chat_send_player(name, "Requested opponent couldn't be found. Try again!");
+			minetest.chat_send_player(name, "[ERROR] Requested opponent couldn't be found. Try again!");
+			clear_all()
 			return nil
 		end
 	else
@@ -635,25 +640,19 @@ local function start_game(name, param, unexpected)
 		tug_gamestate.g.players[1].color = 2
 		tug_gamestate.g.players[2].color = 1
 		tug_gamestate.g.current_player = 2
-		--minetest.chat_send_player(name, "You play with the black pieces.")
-		--minetest.chat_send_player(player2, "You play with the white pieces.")
-	else
-		--minetest.chat_send_player(name, "You play with the white pieces.")
-		--minetest.chat_send_player(player2, "You play with the black pieces.")
 	end
-
-	--minetest.chat_send_player(tug_gamestate.g.players[tug_gamestate.g.current_player].name, "Your turn.")
-	--minetest.chat_send_player(tug_gamestate.g.players[3 - tug_gamestate.g.current_player].name, tug_gamestate.g.players[tug_gamestate.g.current_player].name .. "'s turn.")
 
 	tug_gamestate.g.current_board = tug_chess_logic.get_default_board()
 	update_game_board()
 
+	local opponent_name = tug_gamestate.g.players[2].name
+	if opponent_name == "" then opponent_name = "the engine" end
 	if unexpected then
-		--minetest.debug("Unexpected")
 		generate_moves_until_unexpected()
+		minetest.chat_send_player(name, "[INFO] Unexpected game of chess against " .. opponent_name .. " started.")
 	else
-		--minetest.debug("Normal")
 		tug_gamestate.g.moves_until_unexpected = -1
+		minetest.chat_send_player(name, "[INFO] Normal game of chess against " .. opponent_name .. " started.")
 	end
 
 	if tug_gamestate.g.players[tug_gamestate.g.current_player].name == "" then
@@ -666,6 +665,22 @@ local function start_game(name, param, unexpected)
 	end
 
 	save_metadata()
+end
+
+local function set_strength(name, param)
+	local args = split(param, " ")
+	if args[1] == "" then
+		minetest.chat_send_player(name, "[INFO] The current engine strength is set to " .. tug_gamestate.g.engine_strength .. ". Use the [Depth] parameter to specify a new one.")
+		return nil
+	end
+	local strength = tonumber(args[1])
+	if strength ~= nil and math.fmod(strength, 2) == 1 then
+		tug_gamestate.g.engine_strength = strength
+		save_metadata()
+		minetest.chat_send_player(name, "[INFO] Engine strength set to " .. strength .. ".")
+	else
+		minetest.chat_send_player(name, "[ERROR] Invalid strength. Only odd numbers allowed!")
+	end
 end
 
 minetest.register_chatcommand("start", {
@@ -685,6 +700,15 @@ minetest.register_chatcommand("start_normal", {
     func = function(name, param)
 		start_game(name, param, false)
 	end,
+})
+
+minetest.register_chatcommand("strength", {
+	params = "[Depth]",
+	description = "Specify the strength of the engine. (Only odd numbers allowed)",
+	privs = {},
+	func = function(name, param)
+		set_strength(name, param)
+	end
 })
 
 minetest.register_on_punchnode(function(pos, node, puncher, pointed_thing)

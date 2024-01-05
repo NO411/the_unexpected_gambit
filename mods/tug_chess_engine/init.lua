@@ -120,14 +120,14 @@ function tug_chess_engine.minimax(board, depth, alpha, beta, max_p, color)
 	return score
 end
 
-function tug_chess_engine.engine_next_board(board, id)
+function tug_chess_engine.engine_next_board(board, id, depth)
 	local new_boards = tug_chess_logic.get_next_boards(board, id)
 	local max_score = -math.huge
 	local best_board = nil
 
 	local score = 0
 	for _, b in pairs(new_boards) do
-		score = tug_chess_engine.minimax(b, 1, -math.huge, math.huge, false, -id + 3)
+		score = tug_chess_engine.minimax(b, depth, -math.huge, math.huge, false, -id + 3)
 		if score > max_score then
 			max_score = score
 			best_board = b

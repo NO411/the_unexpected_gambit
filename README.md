@@ -14,4 +14,12 @@ Open the chat (Press 'T') and type one of the following commands:
 
 > The *Player2* Parameter is optional but needed, if you want to play against another player. Without it the engine is picked as opponent.
 
+## Change strength of the engine
+If you want to change the strength of the engine (How far the engine looks into the future) you can use the following commands:
+
+- `/strength` - Display the current strength of the engine.
+- `/strength [Depth]` - Change the strength of the engine to a desired value.
+
+> The *Depth* Parameter must be an odd number.
+
 Fly mode is activated by default and should be used to get a better overview!

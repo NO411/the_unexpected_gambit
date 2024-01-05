@@ -6,5 +6,6 @@ tug_gamestate = {
         current_board = nil,
 		moves_until_unexpected = -1,
 		last_boards = {},
+		engine_strength = 1,
     }
 }
