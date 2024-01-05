@@ -91,7 +91,7 @@ tug_unexpected = {
 				local pieces = {}
 				for l, line in pairs(tug_gamestate.g.current_board) do
 					for r, row in pairs(line) do
-						if row.name ~= "" and string.lower(row.name) ~= "k" then
+						if row.name ~= "" and string.lower(row.name) ~= "k" and string.lower(row.name) ~= "p" then
 							table.insert(pieces, {l=l, r=r})
 						end
 					end
