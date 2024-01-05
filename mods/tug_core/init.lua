@@ -354,20 +354,23 @@ minetest.register_on_joinplayer(function(player)
 		"formspec_version[4]" ..
 		"size[10, 10]" ..
 		"label[0.5,0.5;" ..
-        [[How to play:
+        [[
+Chatcommands:
 
-Open the chat and run one of the following commands:
+/start [Player2\] - Play the game as it was intendet.
+/start_normal [Player2\] - Play a normal game of chess.
         
-/start {Player2}
-Play the game as it was intendet.
-
-/start_normal {Player2}
-Play a normal game of chess.
-        
-The {Player2} Parameter is optional but needed,
+The Player2 Parameter is optional but needed,
 if you want to play against another player.
-Without it the engine is picked as opponent.]]
-	)
+Without it the engine is picked as opponent.
+
+/strength - Display the current strength of the engine.
+/strength [Depth\] - Change the strength of the engine to a desired (odd) value.
+
+Hint: Fly mode is activated by default and
+should be used to get a better overview!
+]]
+)
 
     player:set_physics_override({speed = 1.5})
     player:set_properties({selectionbox = {0, 0, 0, 0, 0, 0, rotate = false}})
@@ -451,7 +454,6 @@ end
 local function clear_all()
 	tug_core.interaction_blocked = false
 	delete_gamestate()
-	update_game_board()
 	save_metadata()
 end
 
