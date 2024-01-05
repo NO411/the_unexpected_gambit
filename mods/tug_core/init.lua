@@ -416,7 +416,7 @@ Without it the engine is picked as opponent.]]
     end
 
     if not found then
-        minetest.chat_send_player(name, "Use /start to start a game.")
+        minetest.chat_send_player(name, "Use /start to start a game. Open inventory for more info!")
     end
 
     minetest.after(0, function()
@@ -466,6 +466,8 @@ local function reset_game(has_won)
     end
     tug_core.interaction_blocked = true
 
+	minetest.set_timeofday(0.5)
+
     local msg_huds = {}
     for _, player in pairs(minetest.get_connected_players()) do
         local name = player:get_player_name()
@@ -497,6 +499,13 @@ local function reset_game(has_won)
 	end)
 end
 
+local function append_timeline()
+	table.insert(tug_gamestate.g.last_boards, deepcopy(tug_gamestate.g.current_board))
+	if #tug_gamestate.g.last_boards > 10 then
+		table.remove(tug_gamestate.g.last_boards, 1)
+	end
+end
+
 local function made_move(new_board)
     if not new_board then
         return
@@ -524,10 +533,7 @@ local function made_move(new_board)
 
     switch_player()
 	decrease_moves_until_unexpected()
-	table.insert(tug_gamestate.g.last_boards, deepcopy(tug_gamestate.g.current_board))
-	if #tug_gamestate.g.last_boards > 10 then
-		table.remove(tug_gamestate.g.last_boards, 1)
-	end
+	append_timeline()	
     save_metadata()
     update_game_board()
 
@@ -606,7 +612,8 @@ local function display_unexpected_behavior(behavior_name, behavior_color)
 end
 
 local function generate_moves_until_unexpected()
-	tug_gamestate.g.moves_until_unexpected = math.random(5, 10)
+	local available_move_count = {6, 8, 10}
+	tug_gamestate.g.moves_until_unexpected = available_move_count[math.random(#available_move_count)]
 end
 
 function decrease_moves_until_unexpected()
@@ -619,6 +626,7 @@ function decrease_moves_until_unexpected()
 				minetest.set_timeofday(0.5)
 				if behavior.pick_min <= behavior_pick and behavior_pick <= behavior.pick_max then
 					display_unexpected_behavior(behavior.name, behavior.color)
+					append_timeline()
 					behavior.func()
 					break
 				end
@@ -660,13 +668,14 @@ local function start_game(name, param, unexpected)
 	end
 
 	tug_gamestate.g.current_board = tug_chess_logic.get_default_board()
-	table.insert(tug_gamestate.g.last_boards, deepcopy(tug_gamestate.g.current_board))
+	append_timeline()
 	update_game_board()
 
 	local opponent_name = tug_gamestate.g.players[2].name
 	if opponent_name == "" then opponent_name = "the engine" end
 	if unexpected then
-		generate_moves_until_unexpected()
+		if tug_gamestate.g.current_player == 2 then tug_gamestate.g.moves_until_unexpected = 7
+		else tug_gamestate.g.moves_until_unexpected = 8 end
 		minetest.chat_send_player(name, "[INFO] Unexpected game of chess against " .. opponent_name .. " started.")
 	else
 		tug_gamestate.g.moves_until_unexpected = -1
