@@ -619,7 +619,13 @@ local function start_game(name, param, unexpected)
 	local player2 = t[#t]
 
 	if player2 ~= "" then
-		tug_gamestate.g.players[2] = {name = player2, color = 2}
+		local p = minetest.get_player_by_name("playername")
+		if p then
+			tug_gamestate.g.players[2] = {name = player2, color = 2}
+		else
+			minetest.chat_send_player(name, "Requested opponent couldn't be found. Try again!");
+			return nil
+		end
 	else
 		tug_gamestate.g.players[2] = {name = "", color = 2}
 	end
