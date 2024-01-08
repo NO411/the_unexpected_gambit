@@ -355,19 +355,20 @@ minetest.register_on_joinplayer(function(player)
 		"size[10, 10]" ..
 		"label[0.5,0.5;" ..
         [[
-Chatcommands:
+Chat commands:
 
-/start [Player2\] - Play the game as it was intendet.
+/start [Player2\] - Play the game as it was intended.
 /start_normal [Player2\] - Play a normal game of chess.
-        
-The Player2 Parameter is optional but needed,
+
+The Player2 parameter is optional, but necessary
 if you want to play against another player.
-Without it the engine is picked as opponent.
+Without it, the engine will be selected as an opponent.
 
 /strength - Display the current strength of the engine.
-/strength [Depth\] - Change the strength of the engine to a desired (odd) value.
+/strength [Depth\] - Change the strength of the engine
+to the desired value. Only odd numbers are allowed.
 
-Hint: Fly mode is activated by default and
+Tip: The fly mode is activated by default and
 should be used to get a better overview!
 ]]
 )
@@ -708,13 +709,13 @@ local function set_strength(name, param)
 		save_metadata()
 		minetest.chat_send_player(name, "[INFO] Engine strength set to " .. strength .. ".")
 	else
-		minetest.chat_send_player(name, "[ERROR] Invalid strength. Only odd numbers allowed!")
+		minetest.chat_send_player(name, "[ERROR] Invalid strength. Only odd numbers are allowed!")
 	end
 end
 
 minetest.register_chatcommand("start", {
 	params = "[Player2]",
-	description = "The game as it was intendet. Default is singleplayer against engine. Use Player2 to play against another player.",
+	description = "Play the game as it was intended. The default is a single player against the engine. Use Player2 parameter to play against another player.",
 	privs = {},
 	func = function(name, param)
 		start_game(name, param, true)
@@ -724,7 +725,7 @@ minetest.register_chatcommand("start", {
 
 minetest.register_chatcommand("start_normal", {
     params = "[Player2]",
-    description = "The normal game of chess. Default is singleplayer against engine. Use Player2 to play against another player.",
+    description = "Play a normal game of chess. The default is a single player against the engine. Use Player2 parameter to play against another player.",
     privs = {},
     func = function(name, param)
 		start_game(name, param, false)
@@ -733,7 +734,7 @@ minetest.register_chatcommand("start_normal", {
 
 minetest.register_chatcommand("strength", {
 	params = "[Depth]",
-	description = "Specify the strength of the engine. (Only odd numbers allowed)",
+	description = "Specify the strength of the engine. Only odd numbers are allowed.",
 	privs = {},
 	func = function(name, param)
 		set_strength(name, param)
