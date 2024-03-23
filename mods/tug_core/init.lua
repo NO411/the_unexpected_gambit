@@ -651,7 +651,7 @@ local function start_game(name, param, unexpected)
 	local player2 = t[1]
 
 	if player2 ~= "" then
-		local p = minetest.get_player_by_name("playername")
+		local p = minetest.get_player_by_name(player2)
 		if p then
 			tug_gamestate.g.players[2] = {name = player2, color = 2}
 		else
