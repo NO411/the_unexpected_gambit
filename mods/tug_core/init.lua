@@ -36,9 +36,6 @@ local function save_metadata()
     storage:set_string("gamestate", minetest.serialize(tug_gamestate.g))
 end
 
-minetest.settings:set("time_speed", 0)
-minetest.settings:set("viewing_range", 50)
-
 -- fix
 ground_level = 8
 
